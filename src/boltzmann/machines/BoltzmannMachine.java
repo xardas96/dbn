@@ -38,4 +38,8 @@ public abstract class BoltzmannMachine {
 	public Layer[] getLayers() {
 		return layers;
 	}
+	
+	public List<LayerConnector> getConnections() {
+		return connections;
+	}
 }

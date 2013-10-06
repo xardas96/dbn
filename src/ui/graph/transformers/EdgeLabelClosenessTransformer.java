@@ -5,16 +5,16 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import boltzmann.units.Unit;
+import ui.utils.UnitVertex;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.decorators.ConstantDirectionalEdgeValueTransformer;
 
-public class EdgeLabelClosenessTransformer extends ConstantDirectionalEdgeValueTransformer<Unit, Float> {
+public class EdgeLabelClosenessTransformer extends ConstantDirectionalEdgeValueTransformer<UnitVertex, Float> {
 
     private BoundedRangeModel undirectedModel = new DefaultBoundedRangeModel(5, 0, 0, 10);
     private BoundedRangeModel directedModel = new DefaultBoundedRangeModel(7, 0, 0, 10);
 
-    public EdgeLabelClosenessTransformer(final VisualizationViewer<Unit, Float> vv, double undirected, double directed) {
+    public EdgeLabelClosenessTransformer(final VisualizationViewer<UnitVertex, Float> vv, double undirected, double directed) {
         super(undirected, directed);
         undirectedModel.setValue((int) (undirected * 10));
         directedModel.setValue((int) (directed * 10));

@@ -5,15 +5,17 @@ import java.awt.Paint;
 
 import org.apache.commons.collections15.Transformer;
 
+import ui.utils.UnitVertex;
 import boltzmann.units.BiasUnit;
 import boltzmann.units.HiddenUnit;
 import boltzmann.units.Unit;
 import boltzmann.units.VisibleUnit;
 
-public class UnitDrawPaintTransformer implements Transformer<Unit, Paint> {
+public class UnitDrawPaintTransformer implements Transformer<UnitVertex, Paint> {
 
 	@Override
-	public Paint transform(Unit unit) {
+	public Paint transform(UnitVertex unitVertex) {
+		Unit unit = unitVertex.getUnit();
 		if (unit instanceof VisibleUnit) {
 			return Color.BLUE;
 		}
@@ -21,7 +23,7 @@ public class UnitDrawPaintTransformer implements Transformer<Unit, Paint> {
 			return Color.RED;
 		}
 		if (unit instanceof BiasUnit) {
-			return Color.BLACK;
+			return Color.GRAY;
 		}
 		return Color.WHITE;
 	}
