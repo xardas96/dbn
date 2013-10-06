@@ -5,7 +5,6 @@ import boltzmann.units.factory.UnitFactory;
 import boltzmann.units.factory.UnitFactory.UnitType;
 
 public class Layer {
-
 	private Unit[] units;
 
 	public Layer(int layerCapacity, UnitType unitType) {
@@ -15,7 +14,11 @@ public class Layer {
 		}
 	}
 
-	public Unit[] getUnits() {
-		return units;
+	public Unit getUnit(int index) {
+		return units[index];
+	}
+
+	public int size() {
+		return units.length;
 	}
 }
