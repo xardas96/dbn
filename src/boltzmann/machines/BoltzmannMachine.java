@@ -34,4 +34,8 @@ public abstract class BoltzmannMachine {
 	public void setLearningRate(float learningRate) {
 		this.learningRate = learningRate;
 	}
+	
+	public Layer[] getLayers() {
+		return layers;
+	}
 }
