@@ -25,11 +25,11 @@ public abstract class Unit {
 		turnOff();
 		return state;
 	}
-	
+
 	public void setState(int state) {
 		this.state = state;
 	}
-	
+
 	public int getState() {
 		return state;
 	}
@@ -46,5 +46,39 @@ public abstract class Unit {
 		if (1 - activationProbability > rand) {
 			state = 0;
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Float.floatToIntBits(activationEnergy);
+		result = prime * result + Float.floatToIntBits(activationProbability);
+		result = prime * result + state;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Unit)) {
+			return false;
+		}
+		Unit other = (Unit) obj;
+		if (Float.floatToIntBits(activationEnergy) != Float.floatToIntBits(other.activationEnergy)) {
+			return false;
+		}
+		if (Float.floatToIntBits(activationProbability) != Float.floatToIntBits(other.activationProbability)) {
+			return false;
+		}
+		if (state != other.state) {
+			return false;
+		}
+		return true;
 	}
 }
