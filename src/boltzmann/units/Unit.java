@@ -5,33 +5,37 @@ import java.util.Map;
 public abstract class Unit {
 	protected float activationEnergy;
 	protected float activationProbability;
-	protected int state;
+	protected float state;
 
-	public float calculateActivationEnergy(Map<Unit, Float> connectedUnits) {
+	public void calculateActivationEnergy(Map<Unit, Float> connectedUnits) {
 		activationEnergy = 0;
 		for (Unit connectedUnit : connectedUnits.keySet()) {
 			activationEnergy += connectedUnits.get(connectedUnit) * connectedUnit.state;
 		}
-		return activationEnergy;
 	}
 
-	public float calculateStateChangeProbability() {
+	public void calculateStateChangeProbability() {
 		activationProbability = (float) (1 / (1 + Math.exp(-activationEnergy)));
-		return activationProbability;
 	}
 
-	public int changeState() {
-		turnOn();
-		turnOff();
-		return state;
+	public void changeState() {
+		if (state == 0) {
+			turnOn();
+		} else {
+			turnOff();
+		}
 	}
 
 	public void setState(int state) {
 		this.state = state;
 	}
 
-	public int getState() {
+	public float getState() {
 		return state;
+	}
+	
+	public float getActivationProbability() {
+		return activationProbability;
 	}
 
 	private void turnOn() {
@@ -54,7 +58,7 @@ public abstract class Unit {
 		int result = 1;
 		result = prime * result + Float.floatToIntBits(activationEnergy);
 		result = prime * result + Float.floatToIntBits(activationProbability);
-		result = prime * result + state;
+		result = prime * result + Float.floatToIntBits(state);
 		return result;
 	}
 

@@ -10,8 +10,8 @@ import boltzmann.units.Unit;
 import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachine extends BoltzmannMachine {
-	private int[][] positive;
-	private int[][] negative;
+	private float[][] positive;
+	private float[][] negative;
 	private Layer visibleLayer;
 	private Layer hiddenLayer;
 
@@ -19,8 +19,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		super(layers);
 		visibleLayer = layers[0];
 		hiddenLayer = layers[1];
-		positive = new int[visibleLayer.size()][hiddenLayer.size()];
-		negative = new int[visibleLayer.size()][hiddenLayer.size()];
+		positive = new float[visibleLayer.size()][hiddenLayer.size()];
+		negative = new float[visibleLayer.size()][hiddenLayer.size()];
 	}
 
 	public void initializeVisibleLayerStates(InputStateVector initialInputStates) {
@@ -29,14 +29,15 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			inputUnit.setState(initialInputStates.get(i));
 		}
 	}
-
+	
+	//reality phase
 	public void updateHiddenUnits() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < hiddenLayer.size(); i++) {
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
 			Map<Unit, Float> unitsMap = new HashMap<>();
-			for(int j = 0; j<weigths.length; j++) {
+			for (int j = 0; j < weigths.length; j++) {
 				unitsMap.put(visibleLayer.getUnit(j), weigths[j][i]);
 			}
 			hiddenUnit.calculateActivationEnergy(unitsMap);
@@ -44,7 +45,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			hiddenUnit.changeState();
 		}
 	}
-	
+
 	public void calculatePositive() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
@@ -52,23 +53,12 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			for (int j = 0; j < weigths[i].length; j++) {
 				Unit hidden = hiddenLayer.getUnit(j);
 				Unit visible = visibleLayer.getUnit(i);
-				positive[i][j] = hidden.getState() * visible.getState();
+				positive[i][j] = visible.getState() * hidden.getActivationProbability();
 			}
 		}
 	}
 	
-	public void calculateNegative() {
-		LayerConnector connector = getLayerConnector(hiddenLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
-		for (int i = 0; i < weigths.length; i++) {
-			for (int j = 0; j < weigths[i].length; j++) {
-				Unit hidden = hiddenLayer.getUnit(j);
-				Unit visible = visibleLayer.getUnit(i);
-				negative[i][j] = hidden.getState() * visible.getState();
-			}
-		}
-	}
-
+	//daydreaming phase
 	public void reconstructVisibleUnits() {
 		LayerConnector connector = getLayerConnector(visibleLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
@@ -83,28 +73,39 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			visibleUnit.calculateStateChangeProbability();
 			visibleUnit.changeState();
 		}
-		
+	}
+	
+	public void calculateNegative() {
+		LayerConnector connector = getLayerConnector(hiddenLayer);
+		float[][] weigths = connector.getUnitConnectionWeights();
+		for (int i = 0; i < weigths.length; i++) {
+			for (int j = 0; j < weigths[i].length; j++) {
+				Unit hidden = hiddenLayer.getUnit(j);
+				Unit visible = visibleLayer.getUnit(i);
+				negative[i][j] = hidden.getActivationProbability() * visible.getActivationProbability();
+			}
+		}
 	}
 
-	public void updateWeights() {
+	public void updateWeights(int learningSetSize) {
 		LayerConnector connector = getLayerConnector(visibleLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < weigths.length; i++) {
 			for (int j = 0; j < weigths[i].length; j++) {
-				weigths[i][j] += learningRate * (positive[i][j] - negative[i][j]);
+				weigths[i][j] += learningRate * ((positive[i][j] - negative[i][j]) / learningSetSize);
 			}
 		}
 	}
-	
+
 	public float[][] getWeights() {
 		LayerConnector connector = getLayerConnector(visibleLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
 		return weigths;
 	}
-	
-	public int[] getHiddenLayerStates() {
-		int[] output = new int[hiddenLayer.size()];
-		for(int i = 0; i<hiddenLayer.size(); i++) {
+
+	public float[] getHiddenLayerStates() {
+		float[] output = new float[hiddenLayer.size()];
+		for (int i = 0; i < hiddenLayer.size(); i++) {
 			output[i] = hiddenLayer.getUnit(i).getState();
 		}
 		return output;

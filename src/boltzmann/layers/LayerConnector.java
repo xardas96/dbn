@@ -11,7 +11,7 @@ public class LayerConnector {
 		unitConnectionWeights = new float[bottomLayer.size()][topLayer.size()];
 		for (int i = 0; i < bottomLayer.size(); i++) {
 			for (int j = 0; j < topLayer.size(); j++) {
-				unitConnectionWeights[i][j] = (float) Math.random();
+				unitConnectionWeights[i][j] = (float) Math.random() * 0.1f;
 			}
 		}
 	}
