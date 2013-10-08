@@ -29,7 +29,6 @@ public class Mouse extends AbstractModalGraphMouse implements ModalGraphMouse, I
 	protected final void loadPlugins() {
 		translatingPlugin = new TranslatingGraphMousePlugin(InputEvent.BUTTON1_MASK);
 		scalingPlugin = new ScalingGraphMousePlugin(scalingControl, 0, out, in);
-
 		setMode(ModalGraphMouse.Mode.TRANSFORMING);
 	}
 

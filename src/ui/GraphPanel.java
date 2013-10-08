@@ -16,6 +16,7 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 
@@ -31,7 +32,7 @@ public class GraphPanel extends JPanel {
 		setLayout(new BorderLayout(0, 0));
 	}
 
-	public void initAndShowGraph() {
+	public void initAndShowGraph(ModalGraphMouse.Mode mode) {
 		removeAll();
 		layout = new StaticLayout<>(graph, new UnitPositionTransformer());
 		vv = new VisualizationViewer<>(layout);
@@ -45,6 +46,7 @@ public class GraphPanel extends JPanel {
 		rc.setEdgeLabelClosenessTransformer(new EdgeLabelClosenessTransformer(vv, 0.5f, 0.5f));
 		rc.setLabelOffset(15);
 		mouse = new Mouse(vv.getRenderContext());
+		mouse.setMode(mode);
 		vv.setGraphMouse(mouse);
 		add(new GraphZoomScrollPane(vv), BorderLayout.CENTER);
 	}

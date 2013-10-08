@@ -14,4 +14,9 @@ public class InputStateVector {
 	public int size() {
 		return inputStates.length;
 	}
+	
+	@Override
+	public String toString() {
+		return inputStates.toString();
+	}
 }
