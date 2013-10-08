@@ -10,7 +10,6 @@ import edu.uci.ics.jung.visualization.control.CrossoverScalingControl;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ScalingControl;
 import edu.uci.ics.jung.visualization.control.ScalingGraphMousePlugin;
-import edu.uci.ics.jung.visualization.control.ShearingGraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.TranslatingGraphMousePlugin;
 
 public class Mouse extends AbstractModalGraphMouse implements ModalGraphMouse, ItemSelectable {
@@ -29,9 +28,8 @@ public class Mouse extends AbstractModalGraphMouse implements ModalGraphMouse, I
 	@Override
 	protected final void loadPlugins() {
 		translatingPlugin = new TranslatingGraphMousePlugin(InputEvent.BUTTON1_MASK);
-		shearingPlugin = new ShearingGraphMousePlugin();
 		scalingPlugin = new ScalingGraphMousePlugin(scalingControl, 0, out, in);
-		add(scalingPlugin);
+
 		setMode(ModalGraphMouse.Mode.TRANSFORMING);
 	}
 
@@ -46,9 +44,16 @@ public class Mouse extends AbstractModalGraphMouse implements ModalGraphMouse, I
 			}
 		}
 	}
-	
+
 	@Override
-    protected void setTransformingMode() {
-        add(translatingPlugin);
-    }
+	protected void setPickingMode() {
+		remove(translatingPlugin);
+		remove(scalingPlugin);
+	}
+
+	@Override
+	protected void setTransformingMode() {
+		add(scalingPlugin);
+		add(translatingPlugin);
+	}
 }

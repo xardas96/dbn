@@ -25,12 +25,14 @@ public class GraphPanel extends JPanel {
 	private Graph<UnitVertex, Float> graph;
 	private VisualizationViewer<UnitVertex, Float> vv;
 	private StaticLayout<UnitVertex, Float> layout;
+	private Mouse mouse;
 
 	public GraphPanel() {
 		setLayout(new BorderLayout(0, 0));
 	}
 
 	public void initAndShowGraph() {
+		removeAll();
 		layout = new StaticLayout<>(graph, new UnitPositionTransformer());
 		vv = new VisualizationViewer<>(layout);
 		vv.setBackground(Color.WHITE);
@@ -42,7 +44,7 @@ public class GraphPanel extends JPanel {
 		rc.setEdgeLabelTransformer(new ToStringLabeller<Float>());
 		rc.setEdgeLabelClosenessTransformer(new EdgeLabelClosenessTransformer(vv, 0.5f, 0.5f));
 		rc.setLabelOffset(15);
-		Mouse mouse = new Mouse(vv.getRenderContext());
+		mouse = new Mouse(vv.getRenderContext());
 		vv.setGraphMouse(mouse);
 		add(new GraphZoomScrollPane(vv), BorderLayout.CENTER);
 	}

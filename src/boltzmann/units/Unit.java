@@ -85,6 +85,9 @@ public abstract class Unit implements Serializable {
 		if (state != other.state) {
 			return false;
 		}
+		if(!this.getClass().equals(other.getClass())) {
+			return false;
+		}
 		return true;
 	}
 }

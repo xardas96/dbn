@@ -20,7 +20,7 @@ public abstract class GraphBuilder {
 			Layer l1 = connector.getBottomLayer();
 			Layer l2 = connector.getTopLayer();
 			float[][] weights = connector.getUnitConnectionWeights();
-			int layerY = X_OFFSET;
+			int layerY = Y_OFFSET;
 			for (int i = 0; i < weights.length; i++) {
 				Unit unit1 = l1.getUnit(i);
 				Point position1 = new Point((i + 1) * X_OFFSET, layerY);
