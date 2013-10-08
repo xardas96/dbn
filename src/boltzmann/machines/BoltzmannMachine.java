@@ -1,12 +1,14 @@
 package boltzmann.machines;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
 
-public abstract class BoltzmannMachine {
+public abstract class BoltzmannMachine implements Serializable {
+	private static final long serialVersionUID = 4802579472344660915L;
 	protected Layer[] layers;
 	protected List<LayerConnector> connections;
 	protected float learningRate;
@@ -30,15 +32,15 @@ public abstract class BoltzmannMachine {
 		}
 		return output;
 	}
-	
+
 	public void setLearningRate(float learningRate) {
 		this.learningRate = learningRate;
 	}
-	
+
 	public Layer[] getLayers() {
 		return layers;
 	}
-	
+
 	public List<LayerConnector> getConnections() {
 		return connections;
 	}

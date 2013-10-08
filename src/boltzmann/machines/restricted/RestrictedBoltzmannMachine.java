@@ -10,6 +10,7 @@ import boltzmann.units.Unit;
 import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachine extends BoltzmannMachine {
+	private static final long serialVersionUID = -4569400715891256872L;
 	private float[][] positive;
 	private float[][] negative;
 	private Layer visibleLayer;
@@ -29,8 +30,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			inputUnit.setState(initialInputStates.get(i));
 		}
 	}
-	
-	//reality phase
+
+	// reality phase
 	public void updateHiddenUnits() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
@@ -57,8 +58,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			}
 		}
 	}
-	
-	//daydreaming phase
+
+	// daydreaming phase
 	public void reconstructVisibleUnits() {
 		LayerConnector connector = getLayerConnector(visibleLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
@@ -74,7 +75,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			visibleUnit.changeState();
 		}
 	}
-	
+
 	public void calculateNegative() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();

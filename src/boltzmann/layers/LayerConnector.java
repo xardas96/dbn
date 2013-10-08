@@ -1,6 +1,9 @@
 package boltzmann.layers;
 
-public class LayerConnector {
+import java.io.Serializable;
+
+public class LayerConnector implements Serializable {
+	private static final long serialVersionUID = -117908422331865881L;
 	private Layer bottomLayer;
 	private Layer topLayer;
 	private float[][] unitConnectionWeights;

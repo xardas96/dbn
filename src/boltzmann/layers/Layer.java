@@ -1,10 +1,13 @@
 package boltzmann.layers;
 
+import java.io.Serializable;
+
 import boltzmann.units.Unit;
 import boltzmann.units.factory.UnitFactory;
 import boltzmann.units.factory.UnitFactory.UnitType;
 
-public class Layer {
+public class Layer implements Serializable {
+	private static final long serialVersionUID = -3697680278883271290L;
 	private Unit[] units;
 
 	public Layer(int layerCapacity, UnitType unitType) {

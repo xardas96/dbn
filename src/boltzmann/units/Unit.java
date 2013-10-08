@@ -1,8 +1,10 @@
 package boltzmann.units;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public abstract class Unit {
+public abstract class Unit implements Serializable {
+	private static final long serialVersionUID = 2284449408927311676L;
 	protected float activationEnergy;
 	protected float activationProbability;
 	protected float state;
