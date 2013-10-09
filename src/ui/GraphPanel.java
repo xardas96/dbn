@@ -26,6 +26,7 @@ public class GraphPanel extends JPanel {
 	private Graph<UnitVertex, Float> graph;
 	private VisualizationViewer<UnitVertex, Float> vv;
 	private StaticLayout<UnitVertex, Float> layout;
+	private GraphZoomScrollPane scrollPane;
 	private Mouse mouse;
 
 	public GraphPanel() {
@@ -48,7 +49,8 @@ public class GraphPanel extends JPanel {
 		mouse = new Mouse(vv.getRenderContext());
 		mouse.setMode(mode);
 		vv.setGraphMouse(mouse);
-		add(new GraphZoomScrollPane(vv), BorderLayout.CENTER);
+		scrollPane = new GraphZoomScrollPane(vv);
+		add(scrollPane, BorderLayout.CENTER);
 	}
 
 	public Graph<UnitVertex, Float> getGraph() {
@@ -57,5 +59,13 @@ public class GraphPanel extends JPanel {
 
 	public void setGraph(Graph<UnitVertex, Float> graph) {
 		this.graph = graph;
+	}
+	
+	@Override
+	public void setEnabled(boolean enabled) {
+		if(scrollPane != null) {
+			scrollPane.setEnabled(enabled);
+		}
+		super.setEnabled(enabled);
 	}
 }

@@ -24,4 +24,12 @@ public class Layer implements Serializable {
 	public int size() {
 		return units.length;
 	}
+	
+	public Unit[] getUnits() {
+		return units;
+	}
+	
+	public void setUnits(Unit[] units) {
+		this.units = units;
+	}
 }

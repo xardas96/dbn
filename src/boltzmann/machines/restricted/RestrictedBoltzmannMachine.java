@@ -30,6 +30,13 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			inputUnit.setState(initialInputStates.get(i));
 		}
 	}
+	
+	public void initializeHiddenLayerStates(InputStateVector initialHiddenStates) {
+		for(int i = 0; i< initialHiddenStates.size(); i++) {
+			Unit hiddenUnit = hiddenLayer.getUnit(i);
+			hiddenUnit.setState(initialHiddenStates.get(i));
+		}
+	}
 
 	// reality phase
 	public void updateHiddenUnits() {
@@ -110,5 +117,17 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			output[i] = hiddenLayer.getUnit(i).getState();
 		}
 		return output;
+	}
+	
+	public void testVisible(InputStateVector testVector) {
+		resetNetworkStates();
+		initializeVisibleLayerStates(testVector);
+		updateHiddenUnits();
+	}
+	
+	public void testHidden(InputStateVector testVector) {
+		resetNetworkStates();
+		initializeHiddenLayerStates(testVector);
+		reconstructVisibleUnits();
 	}
 }

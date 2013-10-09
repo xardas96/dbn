@@ -6,6 +6,7 @@ import java.util.List;
 
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
+import boltzmann.units.Unit;
 
 public abstract class BoltzmannMachine implements Serializable {
 	private static final long serialVersionUID = 4802579472344660915L;
@@ -43,5 +44,13 @@ public abstract class BoltzmannMachine implements Serializable {
 
 	public List<LayerConnector> getConnections() {
 		return connections;
+	}
+	
+	public void resetNetworkStates() {
+		for(Layer layer : layers) {
+			for(Unit u : layer.getUnits()) {
+				u.setState(0);
+			}
+		}
 	}
 }
