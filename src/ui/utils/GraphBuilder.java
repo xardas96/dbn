@@ -14,8 +14,8 @@ public abstract class GraphBuilder {
 	private static final int X_OFFSET = 100;
 	private static final int Y_OFFSET = 100;
 
-	public static Graph<UnitVertex, Float> buildGraph(BoltzmannMachine bm) {
-		Graph<UnitVertex, Float> output = new UndirectedSparseGraph<>();
+	public static Graph<UnitVertex, WeightedConnection> buildGraph(BoltzmannMachine bm) {
+		Graph<UnitVertex, WeightedConnection> output = new UndirectedSparseGraph<>();
 		for (LayerConnector connector : bm.getConnections()) {
 			Layer l1 = connector.getBottomLayer();
 			Layer l2 = connector.getTopLayer();
@@ -33,7 +33,8 @@ public abstract class GraphBuilder {
 					UnitVertex vertex2 = new UnitVertex(unit2);
 					vertex2.setIdInLayer(j);
 					vertex2.setPosition(position2);
-					output.addEdge(weights[i][j], vertex2, vertex1, EdgeType.UNDIRECTED);
+					WeightedConnection connection = new WeightedConnection(weights[i][j], vertex2, vertex1);
+					output.addEdge(connection, vertex2, vertex1, EdgeType.UNDIRECTED);
 				}
 			}
 			layerY += Y_OFFSET;

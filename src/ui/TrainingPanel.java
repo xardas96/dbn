@@ -27,6 +27,7 @@ import javax.swing.SwingWorker;
 
 import ui.utils.GraphBuilder;
 import ui.utils.UnitVertex;
+import ui.utils.WeightedConnection;
 import boltzmann.machines.TrainingStepCompletedListener;
 import boltzmann.machines.factory.BoltzmannMachineFactory;
 import boltzmann.machines.restricted.RestrictedBoltzmannMachine;
@@ -104,7 +105,7 @@ public class TrainingPanel extends JPanel {
 				// TODO dialog konfiguracyjny
 				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, 0.1f);
 				graphPanel = new GraphPanel();
-				Graph<UnitVertex, Float> graph = GraphBuilder.buildGraph(rbm);
+				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
 				graphPanel.initAndShowGraph(Mode.TRANSFORMING);
 				presentationPanel.add(graphPanel, BorderLayout.CENTER);
@@ -248,7 +249,7 @@ public class TrainingPanel extends JPanel {
 										disableAll();
 										BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, 0.1f);
 										graphPanel = new GraphPanel();
-										Graph<UnitVertex, Float> graph = GraphBuilder.buildGraph(rbm);
+										Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 										graphPanel.setGraph(graph);
 										graphPanel.initAndShowGraph(Mode.TRANSFORMING);
 										presentationPanel.add(graphPanel, BorderLayout.CENTER);
@@ -275,7 +276,7 @@ public class TrainingPanel extends JPanel {
 						// TODO dialog konfiguracyjny
 						InputStateVector test = new InputStateVector(new int[] { 0, 0, 0, 1, 1, 0 });
 						rbm.testVisible(test);
-						Graph<UnitVertex, Float> graph = GraphBuilder.buildGraph(rbm);
+						Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 						graphPanel.setGraph(graph);
 						graphPanel.initAndShowGraph(Mode.TRANSFORMING);
 						graphPanel.revalidate();
@@ -303,7 +304,7 @@ public class TrainingPanel extends JPanel {
 				//TODO dialog konfiguracyjny
 				InputStateVector test = new InputStateVector(new int[] { 0, 1 });
 				rbm.testHidden(test);
-				Graph<UnitVertex, Float> graph = GraphBuilder.buildGraph(rbm);
+				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
 				graphPanel.initAndShowGraph(Mode.TRANSFORMING);
 				graphPanel.revalidate();
@@ -316,7 +317,7 @@ public class TrainingPanel extends JPanel {
 		clearNetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				rbm.resetNetworkStates();
-				Graph<UnitVertex, Float> graph = GraphBuilder.buildGraph(rbm);
+				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
 				graphPanel.initAndShowGraph(Mode.TRANSFORMING);
 				graphPanel.revalidate();
@@ -365,8 +366,8 @@ public class TrainingPanel extends JPanel {
 
 		public Teacher() {
 			disableAll();
-			trainer = new RestrictedBoltzmannMachineTrainer(rbm, 10000, 0.1f);
-			progressBar.setMaximum(10000);
+			trainer = new RestrictedBoltzmannMachineTrainer(rbm, 5000, 0.1f);
+			progressBar.setMaximum(5000);
 		}
 
 		@Override
@@ -411,7 +412,7 @@ public class TrainingPanel extends JPanel {
 				int command = (Integer) list.get(0);
 				switch (command) {
 				case UPDATE_NET:
-					Graph<UnitVertex, Float> graph = GraphBuilder.buildGraph(rbm);
+					Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 					graphPanel.setGraph(graph);
 					graphPanel.initAndShowGraph(Mode.PICKING);
 					graphPanel.revalidate();

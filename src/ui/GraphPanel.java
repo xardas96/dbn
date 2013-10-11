@@ -11,6 +11,7 @@ import ui.graph.transformers.UnitDrawPaintTransformer;
 import ui.graph.transformers.UnitFillPaintTransformer;
 import ui.graph.transformers.UnitPositionTransformer;
 import ui.utils.UnitVertex;
+import ui.utils.WeightedConnection;
 import edu.uci.ics.jung.algorithms.layout.StaticLayout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
@@ -23,9 +24,9 @@ import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 public class GraphPanel extends JPanel {
 
 	private static final long serialVersionUID = -8925738179912510042L;
-	private Graph<UnitVertex, Float> graph;
-	private VisualizationViewer<UnitVertex, Float> vv;
-	private StaticLayout<UnitVertex, Float> layout;
+	private Graph<UnitVertex, WeightedConnection> graph;
+	private VisualizationViewer<UnitVertex, WeightedConnection> vv;
+	private StaticLayout<UnitVertex, WeightedConnection> layout;
 	private GraphZoomScrollPane scrollPane;
 	private Mouse mouse;
 
@@ -38,12 +39,12 @@ public class GraphPanel extends JPanel {
 		layout = new StaticLayout<>(graph, new UnitPositionTransformer());
 		vv = new VisualizationViewer<>(layout);
 		vv.setBackground(Color.WHITE);
-		RenderContext<UnitVertex, Float> rc = vv.getRenderContext();
+		RenderContext<UnitVertex, WeightedConnection> rc = vv.getRenderContext();
 		rc.setVertexFillPaintTransformer(new UnitFillPaintTransformer());
 		rc.setVertexDrawPaintTransformer(new UnitDrawPaintTransformer());
 		rc.setVertexLabelTransformer(new ToStringLabeller<UnitVertex>());
 		vv.getRenderer().getVertexLabelRenderer().setPosition(Position.CNTR);
-		rc.setEdgeLabelTransformer(new ToStringLabeller<Float>());
+		rc.setEdgeLabelTransformer(new ToStringLabeller<WeightedConnection>());
 		rc.setEdgeLabelClosenessTransformer(new EdgeLabelClosenessTransformer(vv, 0.5f, 0.5f));
 		rc.setLabelOffset(15);
 		mouse = new Mouse(vv.getRenderContext());
@@ -53,11 +54,11 @@ public class GraphPanel extends JPanel {
 		add(scrollPane, BorderLayout.CENTER);
 	}
 
-	public Graph<UnitVertex, Float> getGraph() {
+	public Graph<UnitVertex, WeightedConnection> getGraph() {
 		return graph;
 	}
 
-	public void setGraph(Graph<UnitVertex, Float> graph) {
+	public void setGraph(Graph<UnitVertex, WeightedConnection> graph) {
 		this.graph = graph;
 	}
 	

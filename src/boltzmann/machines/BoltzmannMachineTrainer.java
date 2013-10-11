@@ -35,6 +35,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 				train(vector, trainingVectors.size());
 				error += calculateErrorDelta(vector);
 				trainingStepCompletedListener.onTrainingStepComplete();
+				bm.resetNetworkStates();
 			}
 			error /= trainingVectors.size();
 			trainingStepCompletedListener.onTrainingBatchComplete(i, error);

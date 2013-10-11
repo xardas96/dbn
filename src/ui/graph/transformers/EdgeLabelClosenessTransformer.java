@@ -6,15 +6,16 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import ui.utils.UnitVertex;
+import ui.utils.WeightedConnection;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.decorators.ConstantDirectionalEdgeValueTransformer;
 
-public class EdgeLabelClosenessTransformer extends ConstantDirectionalEdgeValueTransformer<UnitVertex, Float> {
+public class EdgeLabelClosenessTransformer extends ConstantDirectionalEdgeValueTransformer<UnitVertex, WeightedConnection> {
 
     private BoundedRangeModel undirectedModel = new DefaultBoundedRangeModel(5, 0, 0, 10);
     private BoundedRangeModel directedModel = new DefaultBoundedRangeModel(7, 0, 0, 10);
 
-    public EdgeLabelClosenessTransformer(final VisualizationViewer<UnitVertex, Float> vv, double undirected, double directed) {
+    public EdgeLabelClosenessTransformer(final VisualizationViewer<UnitVertex, WeightedConnection> vv, double undirected, double directed) {
         super(undirected, directed);
         undirectedModel.setValue((int) (undirected * 10));
         directedModel.setValue((int) (directed * 10));
