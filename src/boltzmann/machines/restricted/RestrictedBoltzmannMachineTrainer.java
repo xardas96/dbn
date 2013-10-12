@@ -6,19 +6,20 @@ import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<RestrictedBoltzmannMachine> {
 
-	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, int maxEpochs, float maxError) {
-		super(bm, maxEpochs, maxError);
+	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, float learningRate, int maxEpochs, float maxError) {
+		super(bm, learningRate, maxEpochs, maxError);
 	}
 
 	@Override
 	protected void train(InputStateVector trainingVector, int trainingVectorSize) {
 		bm.initializeVisibleLayerStates(trainingVector);
 		bm.updateHiddenUnits();
-		bm.calculatePositive();
+		bm.calculatePositiveGradient();
+		bm.resetVisibleStates();
 		bm.reconstructVisibleUnits();
 		bm.updateHiddenUnits();
-		bm.calculateNegative();
-		bm.updateWeights(trainingVectorSize);
+		bm.calculateNegativeGradient();
+		bm.updateWeights();
 	}
 
 	@Override
@@ -26,7 +27,8 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 		float error = 0;
 		Layer h = bm.getLayers()[0];
 		for (int k = 0; k < h.size(); k++) {
-			error += Math.pow(trainingVector.get(k) - h.getUnit(k).getActivationProbability(), 2);
+			float delta = trainingVector.get(k) - h.getUnit(k).getActivationProbability();
+			error += delta * delta;
 		}
 		return error;
 	}

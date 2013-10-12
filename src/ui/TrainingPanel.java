@@ -104,7 +104,7 @@ public class TrainingPanel extends JPanel {
 		createNetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO dialog konfiguracyjny
-				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, 0.1f, new LayerConnectorWeightInitializer() {
+				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, new LayerConnectorWeightInitializer() {
 					
 					@Override
 					public float getWeight() {
@@ -173,7 +173,7 @@ public class TrainingPanel extends JPanel {
 						if (ret == JFileChooser.APPROVE_OPTION) {
 							File file = chooser.getSelectedFile();
 							try {
-								rbm.resetNetworkStates();
+								rbm.resetUnitStates();
 								ObjectIOManager.save(rbm, file);
 							} catch (IOException e1) {
 								JOptionPane.showMessageDialog(TrainingPanel.this, e1.getMessage());
@@ -322,7 +322,7 @@ public class TrainingPanel extends JPanel {
 		clearNetButton = new JButton("Wyczy\u015B\u0107 stan sieci");
 		clearNetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				rbm.resetNetworkStates();
+				rbm.resetUnitStates();
 				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
 				graphPanel.initAndShowGraph(Mode.TRANSFORMING);
@@ -372,7 +372,7 @@ public class TrainingPanel extends JPanel {
 
 		public Teacher() {
 			disableAll();
-			trainer = new RestrictedBoltzmannMachineTrainer(rbm, 5000, 0.1f);
+			trainer = new RestrictedBoltzmannMachineTrainer(rbm, 0.1f, 5000, 0.1f);
 			progressBar.setMaximum(5000);
 		}
 
@@ -382,7 +382,7 @@ public class TrainingPanel extends JPanel {
 			trainer.setTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 				@Override
-				public void onTrainingStepComplete() {
+				public void onTrainingStepComplete(int step, int maxSteps) {
 //					try {
 //						Thread.sleep(200);
 //					} catch (final InterruptedException e) {
@@ -437,7 +437,7 @@ public class TrainingPanel extends JPanel {
 
 		@Override
 		protected void done() {
-			rbm.resetNetworkStates();
+			rbm.resetUnitStates();
 			enableAll();
 		}
 	}

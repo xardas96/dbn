@@ -11,6 +11,10 @@ public class InputStateVector {
 		return inputStates[index];
 	}
 	
+	public void set(int index, int value) {
+		inputStates[index] = value;
+	}
+	
 	public int size() {
 		return inputStates.length;
 	}

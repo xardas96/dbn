@@ -24,7 +24,7 @@ public class UnitVertex {
 	public Unit getUnit() {
 		return unit;
 	}
-	
+
 	public void setIdInLayer(int idInLayer) {
 		this.idInLayer = idInLayer;
 	}
@@ -62,7 +62,7 @@ public class UnitVertex {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.valueOf(idInLayer);

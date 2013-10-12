@@ -1,7 +1,6 @@
 package boltzmann.units;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public abstract class Unit implements Serializable {
 	private static final long serialVersionUID = 2284449408927311676L;
@@ -9,23 +8,12 @@ public abstract class Unit implements Serializable {
 	protected float activationProbability;
 	protected float state;
 
-	public void calculateActivationEnergy(Map<Unit, Float> connectedUnits) {
-		activationEnergy = 0;
-		for (Unit connectedUnit : connectedUnits.keySet()) {
-			activationEnergy += connectedUnits.get(connectedUnit) * connectedUnit.state;
-		}
+	public void setActivationEnergy(float activationEnergy) {
+		this.activationEnergy = activationEnergy;
 	}
 
-	public void calculateStateChangeProbability() {
-		activationProbability = (float) (1 / (1 + Math.exp(-activationEnergy)));
-	}
-
-	public void changeState() {
-		if (state == 0) {
-			turnOn();
-		} else {
-			turnOff();
-		}
+	public void calculateActivationChangeProbability() {
+		activationProbability = (float) (1.0f / (1.0f + Math.exp(-activationEnergy)));
 	}
 
 	public void setState(int state) {
@@ -40,17 +28,10 @@ public abstract class Unit implements Serializable {
 		return activationProbability;
 	}
 
-	private void turnOn() {
+	public void tryToTurnOn() {
 		double rand = Math.random();
 		if (activationProbability > rand) {
 			state = 1;
-		}
-	}
-
-	private void turnOff() {
-		double rand = Math.random();
-		if (1 - activationProbability > rand) {
-			state = 0;
 		}
 	}
 

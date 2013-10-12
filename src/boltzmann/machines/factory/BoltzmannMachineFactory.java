@@ -7,11 +7,10 @@ import boltzmann.units.factory.UnitFactory.UnitType;
 
 public abstract class BoltzmannMachineFactory {
 
-	public static RestrictedBoltzmannMachine getRestrictedBoltzmannMachine(int visibleLayerCapacity, int hiddenLayerCapacity, float learningRate, LayerConnectorWeightInitializer weightInitializer) {
+	public static RestrictedBoltzmannMachine getRestrictedBoltzmannMachine(int visibleLayerCapacity, int hiddenLayerCapacity, LayerConnectorWeightInitializer weightInitializer) {
 		Layer visibleLayer = new Layer(visibleLayerCapacity, UnitType.VISIBLE);
 		Layer hiddenlayer = new Layer(hiddenLayerCapacity, UnitType.HIDDEN);
 		RestrictedBoltzmannMachine rbm = new RestrictedBoltzmannMachine(new Layer[] { visibleLayer, hiddenlayer }, weightInitializer);
-		rbm.setLearningRate(learningRate);
 		return rbm;
 	}
 }

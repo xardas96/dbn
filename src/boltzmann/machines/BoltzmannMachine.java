@@ -47,7 +47,7 @@ public abstract class BoltzmannMachine implements Serializable {
 		return connections;
 	}
 	
-	public void resetNetworkStates() {
+	public void resetUnitStates() {
 		for(Layer layer : layers) {
 			for(Unit u : layer.getUnits()) {
 				u.setState(0);

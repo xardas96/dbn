@@ -11,8 +11,9 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 	private float maxError;
 	private TrainingStepCompletedListener trainingStepCompletedListener;
 
-	public BoltzmannMachineTrainer(B bm, int maxEpochs, float maxError) {
+	public BoltzmannMachineTrainer(B bm, float learningRate, int maxEpochs, float maxError) {
 		this.bm = bm;
+		this.bm.setLearningRate(learningRate);
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 	}
@@ -27,15 +28,16 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 
 	public void train(List<InputStateVector> trainingVectors) {
 		float error = Float.MAX_VALUE;
+		int trainigBatchSize = trainingVectors.size();
 		for (int i = 0; i < maxEpochs && error > maxError; i++) {
 			Collections.shuffle(trainingVectors);
 			error = 0;
-			for (int j = 0; j < trainingVectors.size(); j++) {
+			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
 				train(vector, trainingVectors.size());
 				error += calculateErrorDelta(vector);
-				trainingStepCompletedListener.onTrainingStepComplete();
-				bm.resetNetworkStates();
+				trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
+				bm.resetUnitStates();
 			}
 			error /= trainingVectors.size();
 			trainingStepCompletedListener.onTrainingBatchComplete(i, error);
