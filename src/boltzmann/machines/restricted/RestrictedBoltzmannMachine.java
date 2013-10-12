@@ -5,6 +5,7 @@ import java.util.Map;
 
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
+import boltzmann.layers.LayerConnectorWeightInitializer;
 import boltzmann.machines.BoltzmannMachine;
 import boltzmann.units.Unit;
 import boltzmann.vectors.InputStateVector;
@@ -16,8 +17,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	private Layer visibleLayer;
 	private Layer hiddenLayer;
 
-	public RestrictedBoltzmannMachine(Layer[] layers) {
-		super(layers);
+	public RestrictedBoltzmannMachine(Layer[] layers, LayerConnectorWeightInitializer weightInitializer) {
+		super(layers, weightInitializer);
 		visibleLayer = layers[0];
 		hiddenLayer = layers[1];
 		positive = new float[visibleLayer.size()][hiddenLayer.size()];

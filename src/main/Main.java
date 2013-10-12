@@ -1,17 +1,27 @@
 package main;
 
 import java.awt.Dimension;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import mnist.MNISTReader;
 import ui.TrainingPanel;
 
 public class Main {
 
 	public static void main(String[] args) {
+//		MNISTReader reader = new MNISTReader();
+//		try {
+//			reader.loadImages(MNISTReader.LEARNING_DATA);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {

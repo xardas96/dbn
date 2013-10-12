@@ -8,10 +8,15 @@ public class LayerConnector implements Serializable {
 	private Layer topLayer;
 	private float[][] unitConnectionWeights;
 
-	public LayerConnector(Layer bottomLayer, Layer topLayer) {
+	public LayerConnector(Layer bottomLayer, Layer topLayer, LayerConnectorWeightInitializer weightInitializer) {
 		this.bottomLayer = bottomLayer;
 		this.topLayer = topLayer;
 		unitConnectionWeights = new float[bottomLayer.size()][topLayer.size()];
+		for(int i = 0; i<unitConnectionWeights.length; i++) {
+			for(int j = 0; j<unitConnectionWeights[i].length; j++) {
+				unitConnectionWeights[i][j] = weightInitializer.getWeight();
+			}
+		}
 	}
 	
 	public Layer getBottomLayer() {
