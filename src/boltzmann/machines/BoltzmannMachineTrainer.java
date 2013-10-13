@@ -34,7 +34,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 			error = 0;
 			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
-				train(vector, trainingVectors.size());
+				train(vector, trainigBatchSize);
 				error += calculateErrorDelta(vector);
 				trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
 				bm.resetUnitStates();

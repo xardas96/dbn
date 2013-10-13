@@ -64,7 +64,7 @@ public class TrainingPanel extends JPanel {
 	public TrainingPanel() {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0 };
-		gridBagLayout.rowHeights = new int[] {0};
+		gridBagLayout.rowHeights = new int[] { 0 };
 		gridBagLayout.columnWeights = new double[] { 1.0 };
 		gridBagLayout.rowWeights = new double[] { 0.0 };
 		setLayout(gridBagLayout);
@@ -94,7 +94,7 @@ public class TrainingPanel extends JPanel {
 		tabbedPane.addTab("Trenowanie sieci", null, trainPanel, null);
 		tabbedPane.setEnabledAt(0, true);
 		GridBagLayout gbl_trainPanel = new GridBagLayout();
-		gbl_trainPanel.columnWidths = new int[] {0};
+		gbl_trainPanel.columnWidths = new int[] { 0 };
 		gbl_trainPanel.rowHeights = new int[] { 0, 0, 0, 0, 0 };
 		gbl_trainPanel.columnWeights = new double[] { 0.0 };
 		gbl_trainPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 1.0 };
@@ -105,7 +105,7 @@ public class TrainingPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				// TODO dialog konfiguracyjny
 				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, new LayerConnectorWeightInitializer() {
-					
+
 					@Override
 					public float getWeight() {
 						return 0;
@@ -149,45 +149,45 @@ public class TrainingPanel extends JPanel {
 		gbc_loadTrainingSetButton.gridx = 0;
 		gbc_loadTrainingSetButton.gridy = 1;
 		trainPanel.add(loadTrainingSetButton, gbc_loadTrainingSetButton);
-		
-				trainNetButton = new JButton("Ucz");
-				trainNetButton.setEnabled(false);
-				trainNetButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						new Teacher().execute();
+
+		trainNetButton = new JButton("Ucz");
+		trainNetButton.setEnabled(false);
+		trainNetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new Teacher().execute();
+			}
+		});
+		GridBagConstraints gbc_trainNetButton = new GridBagConstraints();
+		gbc_trainNetButton.insets = new Insets(5, 5, 5, 5);
+		gbc_trainNetButton.fill = GridBagConstraints.HORIZONTAL;
+		gbc_trainNetButton.gridx = 0;
+		gbc_trainNetButton.gridy = 2;
+		trainPanel.add(trainNetButton, gbc_trainNetButton);
+
+		saveNetButton = new JButton("Zapisz sie\u0107");
+		saveNetButton.setEnabled(false);
+		saveNetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.dir")));
+				int ret = chooser.showSaveDialog(TrainingPanel.this);
+				if (ret == JFileChooser.APPROVE_OPTION) {
+					File file = chooser.getSelectedFile();
+					try {
+						rbm.resetUnitStates();
+						ObjectIOManager.save(rbm, file);
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(TrainingPanel.this, e1.getMessage());
 					}
-				});
-				GridBagConstraints gbc_trainNetButton = new GridBagConstraints();
-				gbc_trainNetButton.insets = new Insets(5, 5, 5, 5);
-				gbc_trainNetButton.fill = GridBagConstraints.HORIZONTAL;
-				gbc_trainNetButton.gridx = 0;
-				gbc_trainNetButton.gridy = 2;
-				trainPanel.add(trainNetButton, gbc_trainNetButton);
-		
-				saveNetButton = new JButton("Zapisz sie\u0107");
-				saveNetButton.setEnabled(false);
-				saveNetButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.dir")));
-						int ret = chooser.showSaveDialog(TrainingPanel.this);
-						if (ret == JFileChooser.APPROVE_OPTION) {
-							File file = chooser.getSelectedFile();
-							try {
-								rbm.resetUnitStates();
-								ObjectIOManager.save(rbm, file);
-							} catch (IOException e1) {
-								JOptionPane.showMessageDialog(TrainingPanel.this, e1.getMessage());
-							}
-						}
-					}
-				});
-				GridBagConstraints gbc_saveNetButton = new GridBagConstraints();
-				gbc_saveNetButton.fill = GridBagConstraints.HORIZONTAL;
-				gbc_saveNetButton.anchor = GridBagConstraints.NORTH;
-				gbc_saveNetButton.insets = new Insets(5, 5, 5, 5);
-				gbc_saveNetButton.gridx = 0;
-				gbc_saveNetButton.gridy = 3;
-				trainPanel.add(saveNetButton, gbc_saveNetButton);
+				}
+			}
+		});
+		GridBagConstraints gbc_saveNetButton = new GridBagConstraints();
+		gbc_saveNetButton.fill = GridBagConstraints.HORIZONTAL;
+		gbc_saveNetButton.anchor = GridBagConstraints.NORTH;
+		gbc_saveNetButton.insets = new Insets(5, 5, 5, 5);
+		gbc_saveNetButton.gridx = 0;
+		gbc_saveNetButton.gridy = 3;
+		trainPanel.add(saveNetButton, gbc_saveNetButton);
 
 		infoPanel = new JPanel();
 		GridBagConstraints gbc_infoPanel = new GridBagConstraints();
@@ -204,14 +204,14 @@ public class TrainingPanel extends JPanel {
 		gbl_infoPanel.columnWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
 		gbl_infoPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0 };
 		infoPanel.setLayout(gbl_infoPanel);
-		
-				lblNewLabel = new JLabel("");
-				GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
-				gbc_lblNewLabel.insets = new Insets(5, 5, 5, 5);
-				gbc_lblNewLabel.anchor = GridBagConstraints.NORTHWEST;
-				gbc_lblNewLabel.gridx = 0;
-				gbc_lblNewLabel.gridy = 0;
-				infoPanel.add(lblNewLabel, gbc_lblNewLabel);
+
+		lblNewLabel = new JLabel("");
+		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
+		gbc_lblNewLabel.insets = new Insets(5, 5, 5, 5);
+		gbc_lblNewLabel.anchor = GridBagConstraints.NORTHWEST;
+		gbc_lblNewLabel.gridx = 0;
+		gbc_lblNewLabel.gridy = 0;
+		infoPanel.add(lblNewLabel, gbc_lblNewLabel);
 
 		lblNewLabel_1 = new JLabel("");
 		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
@@ -234,69 +234,69 @@ public class TrainingPanel extends JPanel {
 		testPanel = new JPanel();
 		tabbedPane.addTab("Testowanie sieci", null, testPanel, null);
 		GridBagLayout gbl_testPanel = new GridBagLayout();
-		gbl_testPanel.columnWidths = new int[] {0};
-		gbl_testPanel.rowHeights = new int[] {0, 0, 0, 0};
+		gbl_testPanel.columnWidths = new int[] { 0 };
+		gbl_testPanel.rowHeights = new int[] { 0, 0, 0, 0 };
 		gbl_testPanel.columnWeights = new double[] { 1.0 };
 		gbl_testPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0 };
 		testPanel.setLayout(gbl_testPanel);
-				
-						loadNetButton = new JButton("Wczytaj sie\u0107");
-						loadNetButton.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.dir")));
-								int ret = chooser.showOpenDialog(TrainingPanel.this);
-								if (ret == JFileChooser.APPROVE_OPTION) {
-									File file = chooser.getSelectedFile();
-									try {
-										rbm = ObjectIOManager.load(file);
-									} catch (ClassNotFoundException | IOException e1) {
-										JOptionPane.showMessageDialog(TrainingPanel.this, e1.getMessage());
-									}
-									if (rbm != null) {
-										disableAll();
-										graphPanel = new GraphPanel();
-										Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
-										graphPanel.setGraph(graph);
-										graphPanel.initAndShowGraph(Mode.TRANSFORMING);
-										presentationPanel.add(graphPanel, BorderLayout.CENTER);
-										presentationPanel.revalidate();
-										presentationPanel.repaint();
-										enableAll();
-									}
-								}
-							}
-						});
-						GridBagConstraints gbc_loadNetButton = new GridBagConstraints();
-						gbc_loadNetButton.weightx = 0.2;
-						gbc_loadNetButton.fill = GridBagConstraints.HORIZONTAL;
-						gbc_loadNetButton.anchor = GridBagConstraints.NORTH;
-						gbc_loadNetButton.insets = new Insets(5, 5, 5, 5);
-						gbc_loadNetButton.gridx = 0;
-						gbc_loadNetButton.gridy = 0;
-						testPanel.add(loadNetButton, gbc_loadNetButton);
-		
-				testVisibleButton = new JButton("Testuj rozpoznanie");
-				testVisibleButton.setEnabled(false);
-				testVisibleButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						// TODO dialog konfiguracyjny
-						InputStateVector test = new InputStateVector(new int[] { 0, 0, 0, 1, 1, 0 });
-						rbm.testVisible(test);
+
+		loadNetButton = new JButton("Wczytaj sie\u0107");
+		loadNetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.dir")));
+				int ret = chooser.showOpenDialog(TrainingPanel.this);
+				if (ret == JFileChooser.APPROVE_OPTION) {
+					File file = chooser.getSelectedFile();
+					try {
+						rbm = ObjectIOManager.load(file);
+					} catch (ClassNotFoundException | IOException e1) {
+						JOptionPane.showMessageDialog(TrainingPanel.this, e1.getMessage());
+					}
+					if (rbm != null) {
+						disableAll();
+						graphPanel = new GraphPanel();
 						Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 						graphPanel.setGraph(graph);
 						graphPanel.initAndShowGraph(Mode.TRANSFORMING);
-						graphPanel.revalidate();
-						graphPanel.repaint();
+						presentationPanel.add(graphPanel, BorderLayout.CENTER);
+						presentationPanel.revalidate();
+						presentationPanel.repaint();
+						enableAll();
 					}
-				});
-				GridBagConstraints gbc_testVisibleButton_1_1 = new GridBagConstraints();
-				gbc_testVisibleButton_1_1.fill = GridBagConstraints.HORIZONTAL;
-				gbc_testVisibleButton_1_1.anchor = GridBagConstraints.NORTH;
-				gbc_testVisibleButton_1_1.insets = new Insets(5, 5, 5, 5);
-				gbc_testVisibleButton_1_1.gridx = 0;
-				gbc_testVisibleButton_1_1.gridy = 1;
-				testPanel.add(testVisibleButton, gbc_testVisibleButton_1_1);
-		
+				}
+			}
+		});
+		GridBagConstraints gbc_loadNetButton = new GridBagConstraints();
+		gbc_loadNetButton.weightx = 0.2;
+		gbc_loadNetButton.fill = GridBagConstraints.HORIZONTAL;
+		gbc_loadNetButton.anchor = GridBagConstraints.NORTH;
+		gbc_loadNetButton.insets = new Insets(5, 5, 5, 5);
+		gbc_loadNetButton.gridx = 0;
+		gbc_loadNetButton.gridy = 0;
+		testPanel.add(loadNetButton, gbc_loadNetButton);
+
+		testVisibleButton = new JButton("Testuj rozpoznanie");
+		testVisibleButton.setEnabled(false);
+		testVisibleButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// TODO dialog konfiguracyjny
+				InputStateVector test = new InputStateVector(new int[] { 0, 0, 0, 1, 1, 0 });
+				rbm.testVisible(test);
+				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
+				graphPanel.setGraph(graph);
+				graphPanel.initAndShowGraph(Mode.TRANSFORMING);
+				graphPanel.revalidate();
+				graphPanel.repaint();
+			}
+		});
+		GridBagConstraints gbc_testVisibleButton_1_1 = new GridBagConstraints();
+		gbc_testVisibleButton_1_1.fill = GridBagConstraints.HORIZONTAL;
+		gbc_testVisibleButton_1_1.anchor = GridBagConstraints.NORTH;
+		gbc_testVisibleButton_1_1.insets = new Insets(5, 5, 5, 5);
+		gbc_testVisibleButton_1_1.gridx = 0;
+		gbc_testVisibleButton_1_1.gridy = 1;
+		testPanel.add(testVisibleButton, gbc_testVisibleButton_1_1);
+
 		testHiddenButton = new JButton("Testuj generowanie");
 		GridBagConstraints gbc_testHiddenButton_1_1 = new GridBagConstraints();
 		gbc_testHiddenButton_1_1.fill = GridBagConstraints.HORIZONTAL;
@@ -307,7 +307,7 @@ public class TrainingPanel extends JPanel {
 		testPanel.add(testHiddenButton, gbc_testHiddenButton_1_1);
 		testHiddenButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO dialog konfiguracyjny
+				// TODO dialog konfiguracyjny
 				InputStateVector test = new InputStateVector(new int[] { 0, 1 });
 				rbm.testHidden(test);
 				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
@@ -318,7 +318,7 @@ public class TrainingPanel extends JPanel {
 			}
 		});
 		testHiddenButton.setEnabled(false);
-		
+
 		clearNetButton = new JButton("Wyczy\u015B\u0107 stan sieci");
 		clearNetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -383,20 +383,21 @@ public class TrainingPanel extends JPanel {
 
 				@Override
 				public void onTrainingStepComplete(int step, int maxSteps) {
-//					try {
-//						Thread.sleep(200);
-//					} catch (final InterruptedException e) {
-//						SwingUtilities.invokeLater(new Runnable() {
-//
-//							@Override
-//							public void run() {
-//								JOptionPane.showMessageDialog(TrainingPanel.this, e.getMessage());
-//							}
-//						});
-//					}
-//					List<Number> list = new ArrayList<>();
-//					list.add(UPDATE_NET);
-//					publish(list);
+					// try {
+					// Thread.sleep(200);
+					// } catch (final InterruptedException e) {
+					// SwingUtilities.invokeLater(new Runnable() {
+					//
+					// @Override
+					// public void run() {
+					// JOptionPane.showMessageDialog(TrainingPanel.this,
+					// e.getMessage());
+					// }
+					// });
+					// }
+					// List<Number> list = new ArrayList<>();
+					// list.add(UPDATE_NET);
+					// publish(list);
 				}
 
 				@Override

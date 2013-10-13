@@ -46,7 +46,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			float activationEnergy = 0.0f;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
 			for (int j = 0; j < weigths.length; j++) {
-				activationEnergy += visibleLayer.getUnit(j).getState() * weigths[j][i];
+				Unit visibleUnit = visibleLayer.getUnit(j);
+				activationEnergy += visibleUnit.getState() * weigths[j][i];
 			}
 			hiddenUnit.setActivationEnergy(activationEnergy);
 			hiddenUnit.calculateActivationChangeProbability();
@@ -84,15 +85,29 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			visibleUnit.tryToTurnOn();
 		}
 	}
+	
+	public void reconstructHiddenUnits() {
+		LayerConnector connector = getLayerConnector(hiddenLayer);
+		float[][] weigths = connector.getUnitConnectionWeights();
+		for (int i = 0; i < hiddenLayer.size(); i++) {
+			float activationEnergy = 0.0f;
+			Unit hiddenUnit = hiddenLayer.getUnit(i);
+			for (int j = 0; j < weigths.length; j++) {
+				activationEnergy += visibleLayer.getUnit(j).getActivationProbability() * weigths[j][i];
+			}
+			hiddenUnit.setActivationEnergy(activationEnergy);
+			hiddenUnit.calculateActivationChangeProbability();
+		}
+	}
 
 	public void calculateNegativeGradient() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < weigths.length; i++) {
+			Unit visible = visibleLayer.getUnit(i);
 			for (int j = 0; j < weigths[i].length; j++) {
 				Unit hidden = hiddenLayer.getUnit(j);
-				Unit visible = visibleLayer.getUnit(i);
-				negativeGradient[i][j] = hidden.getActivationProbability() * visible.getActivationProbability();
+				negativeGradient[i][j] = visible.getActivationProbability() * hidden.getActivationProbability();
 			}
 		}
 	}
@@ -117,6 +132,14 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		float[] output = new float[hiddenLayer.size()];
 		for (int i = 0; i < hiddenLayer.size(); i++) {
 			output[i] = hiddenLayer.getUnit(i).getState();
+		}
+		return output;
+	}
+	
+	public float[] getVisibleLayerStates() {
+		float[] output = new float[visibleLayer.size()];
+		for (int i = 0; i < visibleLayer.size(); i++) {
+			output[i] = visibleLayer.getUnit(i).getState();
 		}
 		return output;
 	}

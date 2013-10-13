@@ -17,7 +17,7 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 		bm.calculatePositiveGradient();
 		bm.resetVisibleStates();
 		bm.reconstructVisibleUnits();
-		bm.updateHiddenUnits();
+		bm.reconstructHiddenUnits();
 		bm.calculateNegativeGradient();
 		bm.updateWeights();
 	}
@@ -25,9 +25,9 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 	@Override
 	protected float calculateErrorDelta(InputStateVector trainingVector) {
 		float error = 0;
-		Layer h = bm.getLayers()[0];
-		for (int k = 0; k < h.size(); k++) {
-			float delta = trainingVector.get(k) - h.getUnit(k).getActivationProbability();
+		Layer visible = bm.getLayers()[0];
+		for (int k = 0; k < visible.size(); k++) {
+			float delta = trainingVector.get(k) - visible.getUnit(k).getActivationProbability();
 			error += delta * delta;
 		}
 		return error;
