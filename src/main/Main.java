@@ -7,14 +7,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JFrame;
 
 import mnist.MNISTDigitElement;
 import mnist.MNISTReader;
 import mnist.MnistPanel;
-import boltzmann.layers.LayerConnectorWeightInitializer;
+import boltzmann.layers.LayerConnectorWeightInitializerFactory;
+import boltzmann.machines.AdaptiveLearningFactor;
 import boltzmann.machines.BoltzmannMachineTrainer;
 import boltzmann.machines.TrainingStepCompletedListener;
 import boltzmann.machines.factory.BoltzmannMachineFactory;
@@ -36,27 +36,12 @@ public class Main {
 		if (reader.verify()) {
 			reader.createTrainingSet(100);
 		}
-		final Random rand = new Random();
 		final int numVisible = reader.getCols() * reader.getRows();
 		final int numHidden = 10 * 10;
-		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(numVisible, numHidden, new LayerConnectorWeightInitializer() {
-
-			@Override
-			public float getWeight() {
-				// return 0;
-				return (float) rand.nextGaussian();
-				// }
-				// float upper = 4.0f * (float)Math.sqrt(6.0f / (numVisible +
-				// numHidden));
-				// float lower = -upper;
-				// Random rand = new Random();
-				// float finalW = rand.nextFloat() * (upper - lower) + upper;
-				// return finalW;
-			}
-		});
+		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(numVisible, numHidden, LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer());
 		// //
 		List<InputStateVector> training = reader.getTrainingSetItems();
-		BoltzmannMachineTrainer<RestrictedBoltzmannMachine> trainer = new RestrictedBoltzmannMachineTrainer(rbm, 0.1f, 500, 0.0f);
+		BoltzmannMachineTrainer<RestrictedBoltzmannMachine> trainer = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 500, 0.0f);
 		trainer.setTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 			//
 			@Override

@@ -13,7 +13,6 @@ public abstract class BoltzmannMachine implements Serializable {
 	private static final long serialVersionUID = 4802579472344660915L;
 	protected Layer[] layers;
 	protected List<LayerConnector> connections;
-	protected float learningRate;
 
 	public BoltzmannMachine(Layer[] layers, LayerConnectorWeightInitializer weightInitializer) {
 		this.layers = layers;
@@ -35,12 +34,16 @@ public abstract class BoltzmannMachine implements Serializable {
 		return output;
 	}
 
-	public void setLearningRate(float learningRate) {
-		this.learningRate = learningRate;
-	}
-
 	public Layer[] getLayers() {
 		return layers;
+	}
+	
+	public Layer getFirstLayer() {
+		return layers[0];
+	}
+	
+	public Layer getLastLayer() {
+		return layers[layers.length - 1];
 	}
 
 	public List<LayerConnector> getConnections() {

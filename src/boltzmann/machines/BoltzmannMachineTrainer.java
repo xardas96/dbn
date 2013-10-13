@@ -7,13 +7,16 @@ import boltzmann.vectors.InputStateVector;
 
 public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 	protected B bm;
+	private AdaptiveLearningFactor learningFactor;
 	private int maxEpochs;
 	private float maxError;
 	private TrainingStepCompletedListener trainingStepCompletedListener;
+	private float error;
+	private float previousError;
 
-	public BoltzmannMachineTrainer(B bm, float learningRate, int maxEpochs, float maxError) {
+	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, float maxError) {
 		this.bm = bm;
-		this.bm.setLearningRate(learningRate);
+		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 	}
@@ -22,25 +25,29 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 		this.trainingStepCompletedListener = trainingStepCompletedListener;
 	}
 
-	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize);
+	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, float learningFactor);
 
 	protected abstract float calculateErrorDelta(InputStateVector trainingVector);
 
 	public void train(List<InputStateVector> trainingVectors) {
-		float error = Float.MAX_VALUE;
+		error = Float.MAX_VALUE;
+		previousError = 0;
 		int trainigBatchSize = trainingVectors.size();
 		for (int i = 0; i < maxEpochs && error > maxError; i++) {
 			Collections.shuffle(trainingVectors);
 			error = 0;
+			System.out.println("Learning factor: " + learningFactor.getLearningFactor());
 			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
-				train(vector, trainigBatchSize);
+				train(vector, trainigBatchSize, learningFactor.getLearningFactor());
 				error += calculateErrorDelta(vector);
 				trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
 				bm.resetUnitStates();
 			}
 			error /= trainingVectors.size();
 			trainingStepCompletedListener.onTrainingBatchComplete(i, error);
+			learningFactor.updateLearningFactor(previousError, error);
+			previousError = error;
 		}
 	}
 }

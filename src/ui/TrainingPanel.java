@@ -28,7 +28,8 @@ import javax.swing.SwingWorker;
 import ui.utils.GraphBuilder;
 import ui.utils.UnitVertex;
 import ui.utils.WeightedConnection;
-import boltzmann.layers.LayerConnectorWeightInitializer;
+import boltzmann.layers.LayerConnectorWeightInitializerFactory;
+import boltzmann.machines.AdaptiveLearningFactor;
 import boltzmann.machines.TrainingStepCompletedListener;
 import boltzmann.machines.factory.BoltzmannMachineFactory;
 import boltzmann.machines.restricted.RestrictedBoltzmannMachine;
@@ -104,13 +105,7 @@ public class TrainingPanel extends JPanel {
 		createNetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO dialog konfiguracyjny
-				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, new LayerConnectorWeightInitializer() {
-
-					@Override
-					public float getWeight() {
-						return 0;
-					}
-				});
+				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer());
 				graphPanel = new GraphPanel();
 				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
@@ -372,7 +367,7 @@ public class TrainingPanel extends JPanel {
 
 		public Teacher() {
 			disableAll();
-			trainer = new RestrictedBoltzmannMachineTrainer(rbm, 0.1f, 5000, 0.1f);
+			trainer = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 5000, 0.1f);
 			progressBar.setMaximum(5000);
 		}
 

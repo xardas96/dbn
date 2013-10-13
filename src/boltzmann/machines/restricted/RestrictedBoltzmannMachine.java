@@ -85,7 +85,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			visibleUnit.tryToTurnOn();
 		}
 	}
-	
+
 	public void reconstructHiddenUnits() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
@@ -112,12 +112,12 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 	}
 
-	public void updateWeights() {
+	public void updateWeights(float learningFactor) {
 		LayerConnector connector = getLayerConnector(visibleLayer);
 		float[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < weigths.length; i++) {
 			for (int j = 0; j < weigths[i].length; j++) {
-				weigths[i][j] += learningRate * (positiveGradient[i][j] - negativeGradient[i][j]);
+				weigths[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
 			}
 		}
 	}
@@ -135,7 +135,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 		return output;
 	}
-	
+
 	public float[] getVisibleLayerStates() {
 		float[] output = new float[visibleLayer.size()];
 		for (int i = 0; i < visibleLayer.size(); i++) {
@@ -143,15 +143,15 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 		return output;
 	}
-	
+
 	public void resetVisibleStates() {
-		for(Unit u : visibleLayer.getUnits()) {
+		for (Unit u : visibleLayer.getUnits()) {
 			u.setState(0);
 		}
 	}
-	
+
 	public void resetHiddenStates() {
-		for(Unit u : hiddenLayer.getUnits()) {
+		for (Unit u : hiddenLayer.getUnits()) {
 			u.setState(0);
 		}
 	}
