@@ -23,10 +23,8 @@ public class AdaptiveLearningFactor {
 		if (previousError != 0.0f) {
 			if (currentError > previousError) {
 				decreaseLearningFactor();
-				System.out.println("decreased");
 			} else if (previousError - currentError < 0.01) {
 				increaseLearningFactor();
-				System.out.println("increased");
 			}
 			if (learningFactor == 1.0f) {
 				maxLearningFactorCounter++;

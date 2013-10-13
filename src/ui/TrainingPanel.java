@@ -396,11 +396,12 @@ public class TrainingPanel extends JPanel {
 				}
 
 				@Override
-				public void onTrainingBatchComplete(int currentEpoch, float currentError) {
+				public void onTrainingBatchComplete(int currentEpoch, float currentError, float currentLearningFactor) {
 					List<Number> list = new ArrayList<>();
 					list.add(UPDATE_INFO);
 					list.add(currentEpoch);
 					list.add(currentError);
+					list.add(currentLearningFactor);
 					publish(list);
 				}
 			});
@@ -424,8 +425,9 @@ public class TrainingPanel extends JPanel {
 					int currentEpoch = (Integer) list.get(1);
 					progressBar.setValue(currentEpoch + 1);
 					float currentError = (Float) list.get(2);
+					float currentLearningFactor = (Float) list.get(3);
 					lblNewLabel.setText((currentEpoch + 1) + "");
-					lblNewLabel_1.setText(currentError + "");
+					lblNewLabel_1.setText(currentError + ", " + currentLearningFactor);
 					break;
 				}
 			}

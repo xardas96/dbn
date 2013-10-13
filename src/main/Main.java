@@ -52,7 +52,7 @@ public class Main {
 			}
 
 			@Override
-			public void onTrainingBatchComplete(int currentEpoch, float currentError) {
+			public void onTrainingBatchComplete(int currentEpoch, float currentError, float currentLearningFactor) {
 				List<int[]> outputs = new ArrayList<>();
 				for(int i = 0; i<10; i++) {
 					MNISTDigitElement test = reader.getTestItem(i);
@@ -72,8 +72,7 @@ public class Main {
 				}
 				p.setOutputs(outputs);
 				p.repaint();
-				System.out.println("Epoch: " + currentEpoch + ", error: " + currentError);
-
+				System.out.println("Epoch: " + currentEpoch + ", error: " + currentError + ", learning factor: " + currentLearningFactor);
 			}
 		});
 		trainer.train(training);

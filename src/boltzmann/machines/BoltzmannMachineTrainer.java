@@ -36,7 +36,6 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 		for (int i = 0; i < maxEpochs && error > maxError; i++) {
 			Collections.shuffle(trainingVectors);
 			error = 0;
-			System.out.println("Learning factor: " + learningFactor.getLearningFactor());
 			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
 				train(vector, trainigBatchSize, learningFactor.getLearningFactor());
@@ -45,8 +44,8 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 				bm.resetUnitStates();
 			}
 			error /= trainingVectors.size();
-			trainingStepCompletedListener.onTrainingBatchComplete(i, error);
 			learningFactor.updateLearningFactor(previousError, error);
+			trainingStepCompletedListener.onTrainingBatchComplete(i, error, learningFactor.getLearningFactor());
 			previousError = error;
 		}
 	}
