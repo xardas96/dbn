@@ -13,18 +13,22 @@ import boltzmann.vectors.InputStateVector;
 public class SimpleDeepBeliefNetworkTrainer {
 	private SimpleDeepBeliefNetwork dbn;
 	private RestrictedBoltzmannMachineTrainer rbmTrainer;
+	private AdaptiveLearningFactor learningFactor;
+	private int maxEpochs;
+	private float maxError;
 
-	public SimpleDeepBeliefNetworkTrainer(SimpleDeepBeliefNetwork dbn) {
+	public SimpleDeepBeliefNetworkTrainer(SimpleDeepBeliefNetwork dbn, AdaptiveLearningFactor leariningFactor, int maxEpochs, float maxError) {
 		this.dbn = dbn;
+		this.learningFactor = leariningFactor;
+		this.maxEpochs = maxEpochs;
+		this.maxError = maxError;
 	}
 
 	public void train(List<InputStateVector> trainingVectors) {
-		// RestrictedBoltzmannMachine rbm = dbn.getTempRbm();
-		//
 		Layer firstLayer = dbn.getLayers().get(0);
 		Layer secondLayer = dbn.getLayers().get(1);
 		RestrictedBoltzmannMachine rbm = new RestrictedBoltzmannMachine(firstLayer, secondLayer, dbn.getLayerConnector(firstLayer));
-		rbmTrainer = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 10, 1.0f);
+		rbmTrainer = new RestrictedBoltzmannMachineTrainer(rbm, learningFactor, maxEpochs, maxError);
 		rbmTrainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 			@Override
@@ -40,14 +44,12 @@ public class SimpleDeepBeliefNetworkTrainer {
 			}
 		});
 		rbmTrainer.train(trainingVectors);
-
 		for (int i = 1; i < dbn.getLayers().size() - 1; i++) {
 			System.out.println("Pretraining layer " + i);
 			firstLayer = dbn.getLayers().get(i);
 			secondLayer = dbn.getLayers().get(i + 1);
 			rbm = new RestrictedBoltzmannMachine(firstLayer, secondLayer, dbn.getLayerConnector(secondLayer));
-			// TODO dla wszystkich wektorow uczacych przejdz przez siec, aktywuj
-			// i przepisz
+			//dla wszystkich wektorów ucz¹cych przejdŸ przez sieæ, aktywuj i przepisz prawdopodobieñstwa jako stany
 			List<InputStateVector> newTrainingVectors = new ArrayList<>();
 			for (InputStateVector vector : trainingVectors) {
 				InputStateVector tempVector = new InputStateVector();

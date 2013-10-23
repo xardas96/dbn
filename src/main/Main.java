@@ -5,6 +5,7 @@ import java.util.List;
 
 import mnist.MNISTReader;
 import boltzmann.layers.LayerConnectorWeightInitializerFactory;
+import boltzmann.machines.AdaptiveLearningFactor;
 import boltzmann.vectors.InputStateVector;
 import dbn.SimpleDeepBeliefNetwork;
 import dbn.SimpleDeepBeliefNetworkTrainer;
@@ -30,7 +31,7 @@ public class Main {
 		List<InputStateVector> training = reader.getTrainingSetItems();
 		
 		SimpleDeepBeliefNetwork dbn = DeepBeliefNetworkFactory.getSimpleDeepBeliefNetwork(LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), 784, 500, 500, 10);
-		SimpleDeepBeliefNetworkTrainer trainer = new SimpleDeepBeliefNetworkTrainer(dbn);
+		SimpleDeepBeliefNetworkTrainer trainer = new SimpleDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.2f, 1, 1), 10, 1.0f);
 		trainer.train(training);
 		
 //		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 500, 0.0f);

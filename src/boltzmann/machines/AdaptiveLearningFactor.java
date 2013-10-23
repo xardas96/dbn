@@ -17,6 +17,7 @@ public class AdaptiveLearningFactor {
 		this.learningFactor = learningFactor;
 		this.rhoD = rhoD;
 		this.rhoI = rhoI;
+		this.maxLearningFactorCounter = 0;
 	}
 
 	public void updateLearningFactor(float previousError, float currentError) {
