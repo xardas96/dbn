@@ -1,5 +1,6 @@
 package boltzmann.machines;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -10,7 +11,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 	private AdaptiveLearningFactor learningFactor;
 	private int maxEpochs;
 	private float maxError;
-	private TrainingStepCompletedListener trainingStepCompletedListener;
+	private List<TrainingStepCompletedListener> trainingStepCompletedListeners;
 	private float error;
 	private float previousError;
 
@@ -19,10 +20,15 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
+		this.trainingStepCompletedListeners = new ArrayList<>();
+	}
+	
+	public void setBm(B bm) {
+		this.bm = bm;
 	}
 
-	public void setTrainingStepCompletedListener(TrainingStepCompletedListener trainingStepCompletedListener) {
-		this.trainingStepCompletedListener = trainingStepCompletedListener;
+	public void addTrainingStepCompletedListener(TrainingStepCompletedListener trainingStepCompletedListener) {
+		trainingStepCompletedListeners.add(trainingStepCompletedListener);
 	}
 
 	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, float learningFactor);
@@ -40,12 +46,20 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 				InputStateVector vector = trainingVectors.get(j);
 				train(vector, trainigBatchSize, learningFactor.getLearningFactor());
 				error += calculateErrorDelta(vector);
-				trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
+				if (!trainingStepCompletedListeners.isEmpty()) {
+					for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
+						trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
+					}
+				}
 				bm.resetUnitStates();
 			}
 			error /= trainingVectors.size();
 			learningFactor.updateLearningFactor(previousError, error);
-			trainingStepCompletedListener.onTrainingBatchComplete(i, error, learningFactor.getLearningFactor());
+			if (!trainingStepCompletedListeners.isEmpty()) {
+				for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
+					trainingStepCompletedListener.onTrainingBatchComplete(i, error, learningFactor.getLearningFactor());
+				}
+			}
 			previousError = error;
 		}
 	}

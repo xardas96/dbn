@@ -10,11 +10,12 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, float maxError) {
 		super(bm, learningFactor, maxEpochs, maxError);
 	}
-
+	
 	@Override
 	protected void train(InputStateVector trainingVector, int trainingVectorSize, float learningFactor) {
 		bm.initializeVisibleLayerStates(trainingVector);
 		bm.updateHiddenUnits();
+		bm.clearGradients();
 		bm.calculatePositiveGradient();
 		bm.resetVisibleStates();
 		bm.reconstructVisibleUnits();
@@ -26,7 +27,7 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 	@Override
 	protected float calculateErrorDelta(InputStateVector trainingVector) {
 		float error = 0;
-		Layer visible = bm.getLayers()[0];
+		Layer visible = bm.getVisibleLayer();
 		for (int k = 0; k < visible.size(); k++) {
 			float delta = trainingVector.get(k) - visible.getUnit(k).getActivationProbability();
 			error += delta * delta;

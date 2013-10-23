@@ -16,7 +16,7 @@ public abstract class Unit implements Serializable {
 		activationProbability = (float) (1.0f / (1.0f + Math.exp(-activationEnergy)));
 	}
 
-	public void setState(int state) {
+	public void setState(float state) {
 		this.state = state;
 	}
 

@@ -105,7 +105,7 @@ public class TrainingPanel extends JPanel {
 		createNetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO dialog konfiguracyjny
-				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(6, 2, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer());
+				rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), 6, 2);
 				graphPanel = new GraphPanel();
 				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
@@ -275,7 +275,7 @@ public class TrainingPanel extends JPanel {
 		testVisibleButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO dialog konfiguracyjny
-				InputStateVector test = new InputStateVector(new int[] { 0, 0, 0, 1, 1, 0 });
+				InputStateVector test = new InputStateVector(new float[] { 0, 0, 0, 1, 1, 0 });
 				rbm.testVisible(test);
 				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
@@ -303,7 +303,7 @@ public class TrainingPanel extends JPanel {
 		testHiddenButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO dialog konfiguracyjny
-				InputStateVector test = new InputStateVector(new int[] { 0, 1 });
+				InputStateVector test = new InputStateVector(new float[] { 0, 1 });
 				rbm.testHidden(test);
 				Graph<UnitVertex, WeightedConnection> graph = GraphBuilder.buildGraph(rbm);
 				graphPanel.setGraph(graph);
@@ -374,7 +374,7 @@ public class TrainingPanel extends JPanel {
 		@Override
 		protected Void doInBackground() throws Exception {
 			// TODO konfiguracja trenera
-			trainer.setTrainingStepCompletedListener(new TrainingStepCompletedListener() {
+			trainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 				@Override
 				public void onTrainingStepComplete(int step, int maxSteps) {

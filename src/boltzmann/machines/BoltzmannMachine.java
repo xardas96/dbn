@@ -11,18 +11,25 @@ import boltzmann.units.Unit;
 
 public abstract class BoltzmannMachine implements Serializable {
 	private static final long serialVersionUID = 4802579472344660915L;
-	protected Layer[] layers;
+	protected List<Layer> layers;
 	protected List<LayerConnector> connections;
+	protected LayerConnectorWeightInitializer weightInitializer;
 
-	public BoltzmannMachine(Layer[] layers, LayerConnectorWeightInitializer weightInitializer) {
-		this.layers = layers;
+	public BoltzmannMachine() {
+		layers = new ArrayList<>();
 		connections = new ArrayList<>();
-		for (int i = 0; i < layers.length - 1; i++) {
-			LayerConnector connector = new LayerConnector(layers[i], layers[i + 1], weightInitializer);
+	}
+	
+	public BoltzmannMachine(List<Layer> layers, LayerConnectorWeightInitializer weightInitializer) {
+		this.layers = layers;
+		this.weightInitializer = weightInitializer;
+		connections = new ArrayList<>();
+		for (int i = 0; i < layers.size() - 1; i++) {
+			LayerConnector connector = new LayerConnector(layers.get(i), layers.get(i + 1), weightInitializer);
 			connections.add(connector);
 		}
 	}
-
+	
 	public LayerConnector getLayerConnector(Layer layer) {
 		LayerConnector output = null;
 		for (int i = 0; i < connections.size() && output == null; i++) {
@@ -34,25 +41,25 @@ public abstract class BoltzmannMachine implements Serializable {
 		return output;
 	}
 
-	public Layer[] getLayers() {
+	public List<Layer> getLayers() {
 		return layers;
 	}
-	
+
 	public Layer getFirstLayer() {
-		return layers[0];
+		return layers.get(0);
 	}
-	
+
 	public Layer getLastLayer() {
-		return layers[layers.length - 1];
+		return layers.get(layers.size() - 1);
 	}
 
 	public List<LayerConnector> getConnections() {
 		return connections;
 	}
-	
+
 	public void resetUnitStates() {
-		for(Layer layer : layers) {
-			for(Unit u : layer.getUnits()) {
+		for (Layer layer : layers) {
+			for (Unit u : layer.getUnits()) {
 				u.setState(0);
 			}
 		}

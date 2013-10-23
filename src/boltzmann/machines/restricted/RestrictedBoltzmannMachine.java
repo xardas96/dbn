@@ -1,5 +1,7 @@
 package boltzmann.machines.restricted;
 
+import java.util.List;
+
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
 import boltzmann.layers.LayerConnectorWeightInitializer;
@@ -11,17 +13,24 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	private static final long serialVersionUID = -4569400715891256872L;
 	private float[][] positiveGradient;
 	private float[][] negativeGradient;
-	private Layer visibleLayer;
-	private Layer hiddenLayer;
+	protected Layer visibleLayer;
+	protected Layer hiddenLayer;
 
-	public RestrictedBoltzmannMachine(Layer[] layers, LayerConnectorWeightInitializer weightInitializer) {
+	public RestrictedBoltzmannMachine(List<Layer> layers, LayerConnectorWeightInitializer weightInitializer) {
 		super(layers, weightInitializer);
-		visibleLayer = layers[0];
-		hiddenLayer = layers[1];
-		positiveGradient = new float[visibleLayer.size()][hiddenLayer.size()];
-		negativeGradient = new float[visibleLayer.size()][hiddenLayer.size()];
+		visibleLayer = layers.get(0);
+		hiddenLayer = layers.get(1);
 	}
-
+	
+	public RestrictedBoltzmannMachine(Layer visibleLayer, Layer hiddenLayer, LayerConnector connector) {
+		super();
+		this.visibleLayer = visibleLayer;
+		this.hiddenLayer = hiddenLayer;
+		layers.add(visibleLayer);
+		layers.add(hiddenLayer);
+		connections.add(connector);
+	}
+	
 	public void initializeVisibleLayerStates(InputStateVector initialInputStates) {
 		for (int i = 0; i < initialInputStates.size(); i++) {
 			Unit inputUnit = visibleLayer.getUnit(i);
@@ -144,6 +153,22 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		return output;
 	}
 
+	public Layer getVisibleLayer() {
+		return visibleLayer;
+	}
+
+	public Layer getHiddenLayer() {
+		return hiddenLayer;
+	}
+
+	public void setHiddenLayer(Layer hiddenLayer) {
+		this.hiddenLayer = hiddenLayer;
+	}
+
+	public void setVisibleLayer(Layer visibleLayer) {
+		this.visibleLayer = visibleLayer;
+	}
+
 	public void resetVisibleStates() {
 		for (Unit u : visibleLayer.getUnits()) {
 			u.setState(0);
@@ -154,6 +179,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		for (Unit u : hiddenLayer.getUnits()) {
 			u.setState(0);
 		}
+	}
+
+	public void clearGradients() {
+		positiveGradient = new float[visibleLayer.size()][hiddenLayer.size()];
+		negativeGradient = new float[visibleLayer.size()][hiddenLayer.size()];
 	}
 
 	public void testVisible(InputStateVector testVector) {

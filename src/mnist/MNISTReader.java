@@ -139,7 +139,7 @@ public class MNISTReader {
 		MNISTDigitElement m = null;
 		try {
 			int label = labelsBuf.readUnsignedByte();
-			int data[] = new int[rows * cols];
+			float data[] = new float[rows * cols];
 			for (int i = 0; i < data.length; i++) {
 				data[i] = imagesBuf.readUnsignedByte();
 			}
