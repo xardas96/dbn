@@ -70,7 +70,7 @@ public class MNISTReader {
 					digitList = new ArrayList<>();
 				}
 				digitList.add(i);
-				testSet.put(i.getLabel(), digitList);
+				testSet.put(i.getIntegerLabel(), digitList);
 
 			} else {
 				List<MNISTDigitElement> digitList = trainingSet.get(i.getLabel());
@@ -78,7 +78,7 @@ public class MNISTReader {
 					digitList = new ArrayList<>();
 				}
 				digitList.add(i);
-				trainingSet.put(i.getLabel(), digitList);
+				trainingSet.put(i.getIntegerLabel(), digitList);
 			}
 			boolean allSizesGood = true;
 			for (Integer digit : testSet.keySet()) {

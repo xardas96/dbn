@@ -2,6 +2,7 @@ package boltzmann.vectors;
 
 public class InputStateVector {
 	private float[] inputStates;
+	private String label;
 
 	public InputStateVector() {
 	}
@@ -30,8 +31,16 @@ public class InputStateVector {
 		return inputStates.length;
 	}
 	
+	public String getLabel() {
+		return label;
+	}
+	
+	public void setLabel(String label) {
+		this.label = label;
+	}
+	
 	@Override
 	public String toString() {
-		return inputStates.toString();
+		return label + ": " + inputStates.toString();
 	}
 }

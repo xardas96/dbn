@@ -44,7 +44,7 @@ public class SimpleDeepBeliefNetworkTrainer {
 			}
 		});
 		rbmTrainer.train(trainingVectors);
-		for (int i = 1; i < dbn.getLayers().size() - 1; i++) {
+		for (int i = 1; i < dbn.getLayers().size() - 2; i++) {
 			System.out.println("Pretraining layer " + i);
 			firstLayer = dbn.getLayers().get(i);
 			secondLayer = dbn.getLayers().get(i + 1);
@@ -65,5 +65,6 @@ public class SimpleDeepBeliefNetworkTrainer {
 			rbmTrainer.setBm(rbm);
 			rbmTrainer.train(newTrainingVectors);
 		}
+		//TODO ostatnia warstwa - propagacja wsteczna (z pokazaniem wzorca)
 	}
 }
