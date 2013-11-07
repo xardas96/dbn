@@ -2,6 +2,7 @@ package boltzmann.vectors;
 
 public class InputStateVector {
 	private float[] inputStates;
+	private float[] outputStates;
 	private String label;
 
 	public InputStateVector() {
@@ -17,6 +18,14 @@ public class InputStateVector {
 	
 	public float[] getInputStates() {
 		return inputStates;
+	}
+	
+	public void setOutputStates(float[] outputStates) {
+		this.outputStates = outputStates;
+	}
+	
+	public float[] getOutputStates() {
+		return outputStates;
 	}
 
 	public float get(int index) {

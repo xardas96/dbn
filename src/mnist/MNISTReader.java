@@ -17,8 +17,8 @@ public class MNISTReader {
 	private DataInputStream labelsBuf;
 	private DataInputStream imagesBuf;
 	private Random random;
-	private Map<Integer, List<MNISTDigitElement>> trainingSet;
-	private Map<Integer, List<MNISTDigitElement>> testSet;
+	private Map<String, List<MNISTDigitElement>> trainingSet;
+	private Map<String, List<MNISTDigitElement>> testSet;
 	private int rows;
 	private int cols;
 	private int count;
@@ -26,8 +26,8 @@ public class MNISTReader {
 
 	public MNISTReader(File labelsFile, File imagesFile) {
 		random = new Random();
-		trainingSet = new HashMap<Integer, List<MNISTDigitElement>>();
-		testSet = new HashMap<Integer, List<MNISTDigitElement>>();
+		trainingSet = new HashMap<String, List<MNISTDigitElement>>();
+		testSet = new HashMap<String, List<MNISTDigitElement>>();
 		try {
 			labelsBuf = new DataInputStream(new GZIPInputStream(new FileInputStream(labelsFile)));
 			imagesBuf = new DataInputStream(new GZIPInputStream(new FileInputStream(imagesFile)));
@@ -70,7 +70,7 @@ public class MNISTReader {
 					digitList = new ArrayList<>();
 				}
 				digitList.add(i);
-				testSet.put(i.getIntegerLabel(), digitList);
+				testSet.put(i.getLabel(), digitList);
 
 			} else {
 				List<MNISTDigitElement> digitList = trainingSet.get(i.getLabel());
@@ -78,13 +78,13 @@ public class MNISTReader {
 					digitList = new ArrayList<>();
 				}
 				digitList.add(i);
-				trainingSet.put(i.getIntegerLabel(), digitList);
+				trainingSet.put(i.getLabel(), digitList);
 			}
 			boolean allSizesGood = true;
-			for (Integer digit : testSet.keySet()) {
+			for (String digit : testSet.keySet()) {
 				allSizesGood &= testSet.get(digit).size() >= minimalSizeForEveryDigit - (minimalSizeForEveryDigit / 2);
 			}
-			for (Integer digit : trainingSet.keySet()) {
+			for (String digit : trainingSet.keySet()) {
 				allSizesGood &= trainingSet.get(digit).size() >= minimalSizeForEveryDigit;
 			}
 			done = allSizesGood;
@@ -102,7 +102,7 @@ public class MNISTReader {
 		return output;
 	}
 
-	public Map<Integer, List<MNISTDigitElement>> getTestSet() {
+	public Map<String, List<MNISTDigitElement>> getTestSet() {
 		return testSet;
 	}
 
@@ -145,11 +145,18 @@ public class MNISTReader {
 			}
 			m = new MNISTDigitElement(data);
 			m.setLabel(label);
+			m.setOutputStates(generateDesiredDBNOutput(m.getLabel()));
 		} catch (IOException e) {
 			current = count;
 		} finally {
 			current++;
 		}
 		return m;
+	}
+	
+	private float[] generateDesiredDBNOutput(String label) {
+		float[] output = new float[10];
+		output[Integer.valueOf(label)] = 1;
+		return output;
 	}
 }

@@ -13,12 +13,8 @@ public class MNISTDigitElement extends InputStateVector {
 			set(i, get(i) == 0 ? 0 : 1);
 		}
 	}
-	
+
 	public void setLabel(int label) {
 		super.setLabel(String.valueOf(label));
-	}
-	
-	public int getIntegerLabel() {
-		return Integer.valueOf(super.getLabel());
 	}
 }

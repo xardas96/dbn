@@ -65,6 +65,8 @@ public class SimpleDeepBeliefNetworkTrainer {
 			rbmTrainer.setBm(rbm);
 			rbmTrainer.train(newTrainingVectors);
 		}
+		
+		
 		//TODO ostatnia warstwa - propagacja wsteczna (z pokazaniem wzorca)
 	}
 }

@@ -13,7 +13,7 @@ public abstract class Unit implements Serializable {
 	}
 
 	public void calculateActivationChangeProbability() {
-		activationProbability = (float) (1.0f / (1.0f + Math.exp(-activationEnergy)));
+		 activationProbability = (float) (1.0f / (1.0f + Math.exp(-activationEnergy)));
 	}
 
 	public void setState(float state) {
@@ -23,7 +23,7 @@ public abstract class Unit implements Serializable {
 	public float getState() {
 		return state;
 	}
-	
+
 	public float getActivationProbability() {
 		return activationProbability;
 	}
@@ -66,7 +66,7 @@ public abstract class Unit implements Serializable {
 		if (state != other.state) {
 			return false;
 		}
-		if(!this.getClass().equals(other.getClass())) {
+		if (!this.getClass().equals(other.getClass())) {
 			return false;
 		}
 		return true;
