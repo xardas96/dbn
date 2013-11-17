@@ -8,7 +8,7 @@ public abstract class LayerConnectorWeightInitializerFactory {
 		return new LayerConnectorWeightInitializer() {
 
 			@Override
-			public float getWeight() {
+			public double getWeight() {
 				return 0.0f;
 			}
 		};
@@ -19,8 +19,8 @@ public abstract class LayerConnectorWeightInitializerFactory {
 			private Random random = new Random();
 
 			@Override
-			public float getWeight() {
-				return (float) random.nextGaussian();
+			public double getWeight() {
+				return random.nextGaussian();
 			}
 		};
 	}

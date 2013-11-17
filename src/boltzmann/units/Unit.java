@@ -2,29 +2,42 @@ package boltzmann.units;
 
 import java.io.Serializable;
 
-public abstract class Unit implements Serializable {
+public class Unit implements Serializable {
 	private static final long serialVersionUID = 2284449408927311676L;
-	protected float activationEnergy;
-	protected float activationProbability;
-	protected float state;
+	private UnitType unitType;
+	protected double activationEnergy;
+	protected double activationProbability;
+	protected double state;
 
-	public void setActivationEnergy(float activationEnergy) {
+	public Unit(UnitType unitType) {
+		this.unitType = unitType;
+	}
+
+	public void setActivationEnergy(double activationEnergy) {
 		this.activationEnergy = activationEnergy;
 	}
 
-	public void calculateActivationChangeProbability() {
-		 activationProbability = (float) (1.0f / (1.0f + Math.exp(-activationEnergy)));
+	public double getActivationEnergy() {
+		return activationEnergy;
 	}
 
-	public void setState(float state) {
+	public void calculateActivationChangeProbability() {
+		activationProbability = sigmoidFunction(activationEnergy);
+	}
+
+	public double calculateActivationChangeProbabilityDerrivate() {
+		return sigmoidFunction(activationEnergy) * (1.0 - sigmoidFunction(activationEnergy));
+	}
+
+	public void setState(double state) {
 		this.state = state;
 	}
 
-	public float getState() {
+	public double getState() {
 		return state;
 	}
 
-	public float getActivationProbability() {
+	public double getActivationProbability() {
 		return activationProbability;
 	}
 
@@ -35,40 +48,16 @@ public abstract class Unit implements Serializable {
 		}
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Float.floatToIntBits(activationEnergy);
-		result = prime * result + Float.floatToIntBits(activationProbability);
-		result = prime * result + Float.floatToIntBits(state);
-		return result;
+	private double sigmoidFunction(double x) {
+		return 1.0 / (1.0 + Math.exp(-x));
+	}
+	
+	public UnitType getUnitType() {
+		return unitType;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof Unit)) {
-			return false;
-		}
-		Unit other = (Unit) obj;
-		if (Float.floatToIntBits(activationEnergy) != Float.floatToIntBits(other.activationEnergy)) {
-			return false;
-		}
-		if (Float.floatToIntBits(activationProbability) != Float.floatToIntBits(other.activationProbability)) {
-			return false;
-		}
-		if (state != other.state) {
-			return false;
-		}
-		if (!this.getClass().equals(other.getClass())) {
-			return false;
-		}
-		return true;
+	public String toString() {
+		return unitType + " " + state;
 	}
 }

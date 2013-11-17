@@ -127,7 +127,7 @@ public class MNISTReader {
 
 	public MNISTDigitElement getTestItem(int label) {
 		Random rand = new Random();
-		List<MNISTDigitElement> list = testSet.get(label);
+		List<MNISTDigitElement> list = testSet.get(String.valueOf(label));
 		return list.get(rand.nextInt(list.size()));
 	}
 
@@ -139,7 +139,7 @@ public class MNISTReader {
 		MNISTDigitElement m = null;
 		try {
 			int label = labelsBuf.readUnsignedByte();
-			float data[] = new float[rows * cols];
+			double data[] = new double[rows * cols];
 			for (int i = 0; i < data.length; i++) {
 				data[i] = imagesBuf.readUnsignedByte();
 			}
@@ -154,8 +154,8 @@ public class MNISTReader {
 		return m;
 	}
 	
-	private float[] generateDesiredDBNOutput(String label) {
-		float[] output = new float[10];
+	private double[] generateDesiredDBNOutput(String label) {
+		double[] output = new double[10];
 		output[Integer.valueOf(label)] = 1;
 		return output;
 	}

@@ -4,7 +4,7 @@ import boltzmann.vectors.InputStateVector;
 
 public class MNISTDigitElement extends InputStateVector {
 
-	public MNISTDigitElement(float[] inputStates) {
+	public MNISTDigitElement(double[] inputStates) {
 		super(inputStates);
 	}
 

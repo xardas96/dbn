@@ -1,27 +1,47 @@
 package boltzmann.machines.restricted;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.javatuples.Pair;
 
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
 import boltzmann.layers.LayerConnectorWeightInitializer;
 import boltzmann.machines.BoltzmannMachine;
 import boltzmann.units.Unit;
+import boltzmann.units.UnitType;
 import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	private static final long serialVersionUID = -4569400715891256872L;
-	private float[][] positiveGradient;
-	private float[][] negativeGradient;
+	private double[][] positiveGradient;
+	private double[][] negativeGradient;
+	private double[] hiddenActivationProbabilities;
+	private double[] visibleStates;
 	protected Layer visibleLayer;
 	protected Layer hiddenLayer;
+	private List<Layer> biases;
+	private TrainingThreadManager threadManager;
+
+	public RestrictedBoltzmannMachine() {
+		super();
+	}
 
 	public RestrictedBoltzmannMachine(List<Layer> layers, LayerConnectorWeightInitializer weightInitializer) {
 		super(layers, weightInitializer);
 		visibleLayer = layers.get(0);
 		hiddenLayer = layers.get(1);
+		createArrays();
+		createBiasLayers(weightInitializer);
+		threadManager = new TrainingThreadManager();
+		createThreadManager();
 	}
-	
+
 	public RestrictedBoltzmannMachine(Layer visibleLayer, Layer hiddenLayer, LayerConnector connector) {
 		super();
 		this.visibleLayer = visibleLayer;
@@ -29,19 +49,64 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		layers.add(visibleLayer);
 		layers.add(hiddenLayer);
 		connections.add(connector);
+		createArrays();
+		createThreadManager();
 	}
 	
-	public void initializeVisibleLayerStates(InputStateVector initialInputStates) {
-		for (int i = 0; i < initialInputStates.size(); i++) {
-			Unit inputUnit = visibleLayer.getUnit(i);
-			inputUnit.setState(initialInputStates.get(i));
+	public void setBiasLayersAndConectors(Layer visibleBias, Layer hiddenBias, LayerConnector visibleBiasConnector, LayerConnector hiddenBiasConnector) {
+		biases.add(visibleBias);
+		biases.add(hiddenBias);
+		connections.add(visibleBiasConnector);
+		connections.add(hiddenBiasConnector);
+	}
+	
+	public Layer getBiasForLayer(Layer layer) {
+		return biases.get(layers.indexOf(layer));
+	}
+	
+	public void createThreadManager() {
+		threadManager = new TrainingThreadManager();
+	}
+
+	private void createArrays() {
+		positiveGradient = new double[visibleLayer.size()][hiddenLayer.size()];
+		negativeGradient = new double[visibleLayer.size()][hiddenLayer.size()];
+		hiddenActivationProbabilities = new double[hiddenLayer.size()];
+		biases = new ArrayList<>();
+	}
+
+	private void createBiasLayers(LayerConnectorWeightInitializer weightInitializer) {
+		for(Layer layer : layers) {
+			Layer biasLayer = new Layer(layer.size(), UnitType.BIAS);
+			biases.add(biasLayer);
+			LayerConnector connection = new LayerConnector(layer, biasLayer, weightInitializer);
+			connections.add(connection);
 		}
 	}
 
+	public void initializeVisibleLayerStates(InputStateVector initialInputStates) {
+		visibleLayer.initStates(initialInputStates);
+		visibleStates = initialInputStates.getInputStates();
+	}
+
 	public void initializeHiddenLayerStates(InputStateVector initialHiddenStates) {
-		for (int i = 0; i < initialHiddenStates.size(); i++) {
-			Unit hiddenUnit = hiddenLayer.getUnit(i);
-			hiddenUnit.setState(initialHiddenStates.get(i));
+		hiddenLayer.initStates(initialHiddenStates);
+	}
+
+	public void updateUnits(Layer firstLayer) {
+		LayerConnector connector = getLayerConnector(firstLayer);
+		Layer secondLayer = connector.getBottomLayer().equals(firstLayer) ? connector.getTopLayer() : connector.getBottomLayer();
+		double[][] weights = connector.getUnitConnectionWeights();
+		for (int i = 0; i < firstLayer.size(); i++) {
+			double activationEnergy = 0.0f;
+			Unit firstUnit = firstLayer.getUnit(i);
+			for (int j = 0; j < weights.length; j++) {
+				Unit secondUnit = secondLayer.getUnit(j);
+				activationEnergy += secondUnit.getState() * weights[j][i];
+			}
+			firstUnit.setActivationEnergy(activationEnergy);
+			firstUnit.calculateActivationChangeProbability();
+			firstUnit.tryToTurnOn();
 		}
 	}
 
@@ -49,27 +114,38 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	 * reality phase
 	 */
 	public void updateHiddenUnits() {
+		threadManager.updateHiddenUnits();
+	}
+
+	public void updateHiddenUnitsSync() {
+		Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
 		LayerConnector connector = getLayerConnector(hiddenLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
+		double[][] weights = connector.getUnitConnectionWeights();
 		for (int i = 0; i < hiddenLayer.size(); i++) {
-			float activationEnergy = 0.0f;
+			double activationEnergy = 0.0f;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
-			for (int j = 0; j < weigths.length; j++) {
+			for (int j = 0; j < weights.length; j++) {
 				Unit visibleUnit = visibleLayer.getUnit(j);
-				activationEnergy += visibleUnit.getState() * weigths[j][i];
+				activationEnergy += visibleUnit.getState() * weights[j][i];
 			}
+			activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
 			hiddenUnit.setActivationEnergy(activationEnergy);
 			hiddenUnit.calculateActivationChangeProbability();
+			hiddenActivationProbabilities[i] = hiddenUnit.getActivationProbability();
 			hiddenUnit.tryToTurnOn();
 		}
 	}
 
 	public void calculatePositiveGradient() {
+		threadManager.calculatePositiveGradient();
+	}
+
+	public void calculatePositiveGradientSync() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
-		for (int i = 0; i < weigths.length; i++) {
+		double[][] weights = connector.getUnitConnectionWeights();
+		for (int i = 0; i < weights.length; i++) {
 			Unit visibleUnit = visibleLayer.getUnit(i);
-			for (int j = 0; j < weigths[i].length; j++) {
+			for (int j = 0; j < weights[i].length; j++) {
 				Unit hiddenUnit = hiddenLayer.getUnit(j);
 				positiveGradient[i][j] = visibleUnit.getState() * hiddenUnit.getActivationProbability();
 			}
@@ -80,15 +156,21 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	 * daydreaming phase
 	 */
 	public void reconstructVisibleUnits() {
-		LayerConnector connector = getLayerConnector(visibleLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
+		threadManager.reconstructVisibleUnits();
+	}
+
+	public void reconstructVisibleUnitsSync() {
+		Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+		LayerConnector connector = getLayerConnector(hiddenLayer);
+		double[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < visibleLayer.size(); i++) {
 			Unit visibleUnit = visibleLayer.getUnit(i);
-			float[] weigthsForUnit = weigths[i];
-			float activationEnergy = 0.0f;
-			for (int j = 0; j < weigthsForUnit.length; j++) {
-				activationEnergy += hiddenLayer.getUnit(j).getState() * weigthsForUnit[j];
+			double[] weightsForUnit = weigths[i];
+			double activationEnergy = 0.0f;
+			for (int j = 0; j < weightsForUnit.length; j++) {
+				activationEnergy += hiddenLayer.getUnit(j).getActivationProbability() * weightsForUnit[j];
 			}
+			activationEnergy += visibleBias.getUnit(i).getActivationEnergy();
 			visibleUnit.setActivationEnergy(activationEnergy);
 			visibleUnit.calculateActivationChangeProbability();
 			visibleUnit.tryToTurnOn();
@@ -96,22 +178,32 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void reconstructHiddenUnits() {
+		threadManager.reconstructHiddenUnits();
+	}
+
+	public void reconstructHiddenUnitsSync() {
+		Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
 		LayerConnector connector = getLayerConnector(hiddenLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
+		double[][] weights = connector.getUnitConnectionWeights();
 		for (int i = 0; i < hiddenLayer.size(); i++) {
-			float activationEnergy = 0.0f;
+			double activationEnergy = 0.0f;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
-			for (int j = 0; j < weigths.length; j++) {
-				activationEnergy += visibleLayer.getUnit(j).getActivationProbability() * weigths[j][i];
+			for (int j = 0; j < weights.length; j++) {
+				activationEnergy += visibleLayer.getUnit(j).getActivationProbability() * weights[j][i];
 			}
+			activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
 			hiddenUnit.setActivationEnergy(activationEnergy);
 			hiddenUnit.calculateActivationChangeProbability();
 		}
 	}
 
 	public void calculateNegativeGradient() {
+		threadManager.calculateNegativeGradient();
+	}
+
+	public void calculateNegativeGradientSync() {
 		LayerConnector connector = getLayerConnector(hiddenLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
+		double[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < weigths.length; i++) {
 			Unit visible = visibleLayer.getUnit(i);
 			for (int j = 0; j < weigths[i].length; j++) {
@@ -121,36 +213,51 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 	}
 
-	public void updateWeights(float learningFactor) {
+	public void updateWeights(double learningFactor) {
+		threadManager.updateWeights(learningFactor);
+	}
+
+	public void updateWeightsSync(double learningFactor) {
 		LayerConnector connector = getLayerConnector(visibleLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
-		for (int i = 0; i < weigths.length; i++) {
-			for (int j = 0; j < weigths[i].length; j++) {
-				weigths[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
+		double[][] weights = connector.getUnitConnectionWeights();
+		for (int i = 0; i < weights.length; i++) {
+			for (int j = 0; j < weights[i].length; j++) {
+				weights[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
 			}
 		}
 	}
 
-	public float[][] getWeights() {
+	public void updateBiasWeights(double learningFactor) {
+		threadManager.updateBiasWeights(learningFactor);
+	}
+
+	public void updateBiasWeightsSync(double learningFactor) {
+		Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+		for (int i = 0; i < hiddenBias.size(); i++) {
+			Unit hiddenBiasUnit = hiddenBias.getUnit(i);
+			double factor = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
+			hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + factor);
+		}
+		Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+		for (int i = 0; i < visibleBias.size(); i++) {
+			Unit visibleBiasUnit = visibleBias.getUnit(i);
+			double factor = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
+			visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + factor);
+		}
+	}
+
+	public double[][] getWeights() {
 		LayerConnector connector = getLayerConnector(visibleLayer);
-		float[][] weigths = connector.getUnitConnectionWeights();
-		return weigths;
+		double[][] weights = connector.getUnitConnectionWeights();
+		return weights;
 	}
 
-	public float[] getHiddenLayerStates() {
-		float[] output = new float[hiddenLayer.size()];
-		for (int i = 0; i < hiddenLayer.size(); i++) {
-			output[i] = hiddenLayer.getUnit(i).getState();
-		}
-		return output;
+	public double[] getHiddenLayerStates() {
+		return hiddenLayer.getStates();
 	}
 
-	public float[] getVisibleLayerStates() {
-		float[] output = new float[visibleLayer.size()];
-		for (int i = 0; i < visibleLayer.size(); i++) {
-			output[i] = visibleLayer.getUnit(i).getState();
-		}
-		return output;
+	public double[] getVisibleLayerStates() {
+		return visibleLayer.getStates();
 	}
 
 	public Layer getVisibleLayer() {
@@ -170,31 +277,277 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void resetVisibleStates() {
-		for (Unit u : visibleLayer.getUnits()) {
-			u.setState(0);
-		}
+		visibleLayer.reset();
 	}
 
 	public void resetHiddenStates() {
-		for (Unit u : hiddenLayer.getUnits()) {
-			u.setState(0);
-		}
-	}
-
-	public void clearGradients() {
-		positiveGradient = new float[visibleLayer.size()][hiddenLayer.size()];
-		negativeGradient = new float[visibleLayer.size()][hiddenLayer.size()];
+		hiddenLayer.reset();
 	}
 
 	public void testVisible(InputStateVector testVector) {
-		resetUnitStates();
+		resetStates();
 		initializeVisibleLayerStates(testVector);
 		updateHiddenUnits();
 	}
 
 	public void testHidden(InputStateVector testVector) {
-		resetUnitStates();
+		resetStates();
 		initializeHiddenLayerStates(testVector);
 		reconstructVisibleUnits();
+	}
+
+	private class TrainingThreadManager implements Serializable {
+		private static final long serialVersionUID = -289822615383262058L;
+		private int cores;
+		private List<Pair<Integer, Integer>> visibleSplits;
+		private List<Pair<Integer, Integer>> hiddenSplits;
+
+		public TrainingThreadManager() {
+			cores = Runtime.getRuntime().availableProcessors();
+			visibleSplits = new ArrayList<>();
+			hiddenSplits = new ArrayList<>();
+			int visibleSplitSize = visibleLayer.size() / cores;
+			int hiddenSplitSize = hiddenLayer.size() / cores;
+			System.out.println(cores + " " + visibleSplitSize + " " + hiddenSplitSize);
+			for (int i = 0; i < cores; i++) {
+				int visibleSplit = i * visibleSplitSize;
+				int hiddenSplit = i * hiddenSplitSize;
+				visibleSplits.add(new Pair<>(visibleSplit, visibleSplit + visibleSplitSize));
+				hiddenSplits.add(new Pair<>(hiddenSplit, hiddenSplit + hiddenSplitSize));
+			}
+			int lastVisibleSplit = visibleSplitSize * cores;
+			int lastHiddenSplit = hiddenSplitSize * cores;
+			if (lastVisibleSplit < visibleLayer.size()) {
+				visibleSplits.add(new Pair<>(lastVisibleSplit - 1, visibleLayer.size() - 1));
+			}
+			if (lastHiddenSplit < hiddenLayer.size()) {
+				hiddenSplits.add(new Pair<>(lastHiddenSplit - 1, hiddenLayer.size() - 1));
+			}
+		}
+
+		public void calculateNegativeGradient() {
+			LayerConnector connector = getLayerConnector(hiddenLayer);
+			final double[][] weigths = connector.getUnitConnectionWeights();
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : visibleSplits) {
+				tasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							Unit visible = visibleLayer.getUnit(i);
+							for (int j = 0; j < weigths[i].length; j++) {
+								Unit hidden = hiddenLayer.getUnit(j);
+								negativeGradient[i][j] = visible.getActivationProbability() * hidden.getActivationProbability();
+							}
+						}
+
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(tasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void calculatePositiveGradient() {
+			LayerConnector connector = getLayerConnector(hiddenLayer);
+			final double[][] weights = connector.getUnitConnectionWeights();
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : visibleSplits) {
+				tasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							Unit visibleUnit = visibleLayer.getUnit(i);
+							for (int j = 0; j < weights[i].length; j++) {
+								Unit hiddenUnit = hiddenLayer.getUnit(j);
+								positiveGradient[i][j] = visibleUnit.getState() * hiddenUnit.getActivationProbability();
+							}
+						}
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(tasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void updateWeights(final double learningFactor) {
+			LayerConnector connector = getLayerConnector(visibleLayer);
+			final double[][] weights = connector.getUnitConnectionWeights();
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : visibleSplits) {
+				tasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							for (int j = 0; j < weights[i].length; j++) {
+								weights[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
+							}
+						}
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(tasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void updateBiasWeights(final double learningFactor) {
+			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+			List<Callable<Void>> hiddenTasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : hiddenSplits) {
+				hiddenTasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							Unit hiddenBiasUnit = hiddenBias.getUnit(i);
+							double factor = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
+							hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + factor);
+						}
+						return null;
+					}
+				});
+			}
+			List<Callable<Void>> visibleTasks = new ArrayList<>();
+			final Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+			for (final Pair<Integer, Integer> p : visibleSplits) {
+				visibleTasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							Unit visibleBiasUnit = visibleBias.getUnit(i);
+							double factor = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
+							visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + factor);
+						}
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(hiddenTasks);
+				ex.invokeAll(visibleTasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void reconstructHiddenUnits() {
+			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+			LayerConnector connector = getLayerConnector(hiddenLayer);
+			final double[][] weights = connector.getUnitConnectionWeights();
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : hiddenSplits) {
+				tasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							double activationEnergy = 0.0f;
+							Unit hiddenUnit = hiddenLayer.getUnit(i);
+							for (int j = 0; j < weights.length; j++) {
+								activationEnergy += visibleLayer.getUnit(j).getActivationProbability() * weights[j][i];
+							}
+							activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
+							hiddenUnit.setActivationEnergy(activationEnergy);
+							hiddenUnit.calculateActivationChangeProbability();
+						}
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(tasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void reconstructVisibleUnits() {
+			final Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+			LayerConnector connector = getLayerConnector(hiddenLayer);
+			final double[][] weigths = connector.getUnitConnectionWeights();
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : visibleSplits) {
+				tasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							Unit visibleUnit = visibleLayer.getUnit(i);
+							double[] weightsForUnit = weigths[i];
+							double activationEnergy = 0.0f;
+							for (int j = 0; j < weightsForUnit.length; j++) {
+								activationEnergy += hiddenLayer.getUnit(j).getActivationProbability() * weightsForUnit[j];
+							}
+							activationEnergy += visibleBias.getUnit(i).getActivationEnergy();
+							visibleUnit.setActivationEnergy(activationEnergy);
+							visibleUnit.calculateActivationChangeProbability();
+							visibleUnit.tryToTurnOn();
+						}
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(tasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void updateHiddenUnits() {
+			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+			LayerConnector connector = getLayerConnector(hiddenLayer);
+			final double[][] weights = connector.getUnitConnectionWeights();
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (final Pair<Integer, Integer> p : hiddenSplits) {
+				tasks.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+							double activationEnergy = 0.0f;
+							Unit hiddenUnit = hiddenLayer.getUnit(i);
+							for (int j = 0; j < weights.length; j++) {
+								Unit visibleUnit = visibleLayer.getUnit(j);
+								activationEnergy += visibleUnit.getState() * weights[j][i];
+							}
+							activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
+							hiddenUnit.setActivationEnergy(activationEnergy);
+							hiddenUnit.calculateActivationChangeProbability();
+							hiddenActivationProbabilities[i] = hiddenUnit.getActivationProbability();
+							hiddenUnit.tryToTurnOn();
+						}
+						return null;
+					}
+				});
+			}
+			try {
+				ExecutorService ex = (ExecutorService) Executors.newFixedThreadPool(cores);
+				ex.invokeAll(tasks);
+				ex.shutdown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

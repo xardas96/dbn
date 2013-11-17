@@ -17,7 +17,7 @@ public abstract class InputStateVectorLoader {
 		String line;
 		while ((line = reader.readLine()) != null) {
 			String[] inputs = line.split(",");
-			float[] states = new float[inputs.length];
+			double[] states = new double[inputs.length];
 			for (int i = 0; i < inputs.length; i++) {
 				states[i] = Integer.valueOf(inputs[i]);
 			}

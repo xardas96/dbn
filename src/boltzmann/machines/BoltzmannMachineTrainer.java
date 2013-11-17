@@ -4,18 +4,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import boltzmann.training.AdaptiveLearningFactor;
+import boltzmann.training.Trainer;
+import boltzmann.training.TrainingStepCompletedListener;
 import boltzmann.vectors.InputStateVector;
 
-public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
+public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implements Trainer {
 	protected B bm;
 	private AdaptiveLearningFactor learningFactor;
 	private int maxEpochs;
-	private float maxError;
+	private double maxError;
 	private List<TrainingStepCompletedListener> trainingStepCompletedListeners;
-	private float error;
-	private float previousError;
+	private double error;
+	private double previousError;
 
-	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, float maxError) {
+	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError) {
 		this.bm = bm;
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
@@ -31,12 +34,13 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 		trainingStepCompletedListeners.add(trainingStepCompletedListener);
 	}
 
-	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, float learningFactor);
+	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor);
 
-	protected abstract float calculateErrorDelta(InputStateVector trainingVector);
+	protected abstract double calculateErrorDelta(InputStateVector trainingVector);
 
+	@Override
 	public void train(List<InputStateVector> trainingVectors) {
-		error = Float.MAX_VALUE;
+		error = Double.MAX_VALUE;
 		previousError = 0;
 		int trainigBatchSize = trainingVectors.size();
 		for (int i = 0; i < maxEpochs && error > maxError; i++) {
@@ -51,7 +55,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> {
 						trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
 					}
 				}
-				bm.resetUnitStates();
+				bm.resetStates();
 			}
 			error /= trainingVectors.size();
 			learningFactor.updateLearningFactor(previousError, error);

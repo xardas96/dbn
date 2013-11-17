@@ -1,38 +1,38 @@
 package boltzmann.vectors;
 
 public class InputStateVector {
-	private float[] inputStates;
-	private float[] outputStates;
+	private double[] inputStates;
+	private double[] outputStates;
 	private String label;
 
 	public InputStateVector() {
 	}
 	
-	public InputStateVector(float[] inputStates) {
+	public InputStateVector(double[] inputStates) {
 		this.inputStates = inputStates;
 	}
 	
-	public void setInputStates(float[] inputStates) {
+	public void setInputStates(double[] inputStates) {
 		this.inputStates = inputStates;
 	}
 	
-	public float[] getInputStates() {
+	public double[] getInputStates() {
 		return inputStates;
 	}
 	
-	public void setOutputStates(float[] outputStates) {
+	public void setOutputStates(double[] outputStates) {
 		this.outputStates = outputStates;
 	}
 	
-	public float[] getOutputStates() {
+	public double[] getOutputStates() {
 		return outputStates;
 	}
 
-	public float get(int index) {
+	public double get(int index) {
 		return inputStates[index];
 	}
 	
-	public void set(int index, float value) {
+	public void set(int index, double value) {
 		inputStates[index] = value;
 	}
 	

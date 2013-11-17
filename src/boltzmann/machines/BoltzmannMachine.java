@@ -7,13 +7,11 @@ import java.util.List;
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
 import boltzmann.layers.LayerConnectorWeightInitializer;
-import boltzmann.units.Unit;
 
 public abstract class BoltzmannMachine implements Serializable {
 	private static final long serialVersionUID = 4802579472344660915L;
 	protected List<Layer> layers;
 	protected List<LayerConnector> connections;
-	protected LayerConnectorWeightInitializer weightInitializer;
 
 	public BoltzmannMachine() {
 		layers = new ArrayList<>();
@@ -22,7 +20,6 @@ public abstract class BoltzmannMachine implements Serializable {
 	
 	public BoltzmannMachine(List<Layer> layers, LayerConnectorWeightInitializer weightInitializer) {
 		this.layers = layers;
-		this.weightInitializer = weightInitializer;
 		connections = new ArrayList<>();
 		for (int i = 0; i < layers.size() - 1; i++) {
 			LayerConnector connector = new LayerConnector(layers.get(i), layers.get(i + 1), weightInitializer);
@@ -57,11 +54,9 @@ public abstract class BoltzmannMachine implements Serializable {
 		return connections;
 	}
 
-	public void resetUnitStates() {
+	public void resetStates() {
 		for (Layer layer : layers) {
-			for (Unit u : layer.getUnits()) {
-				u.setState(0);
-			}
+			layer.reset();
 		}
 	}
 }

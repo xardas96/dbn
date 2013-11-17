@@ -1,26 +1,23 @@
 package boltzmann.units.factory;
 
-import boltzmann.units.BiasUnit;
-import boltzmann.units.HiddenUnit;
+import java.util.Random;
+
 import boltzmann.units.Unit;
-import boltzmann.units.VisibleUnit;
+import boltzmann.units.UnitType;
 
 public abstract class UnitFactory {
 
 	public static Unit getUnit(UnitType unitType) {
-		switch (unitType) {
-		case VISIBLE:
-			return new VisibleUnit();
-		case HIDDEN:
-			return new HiddenUnit();
-		case BIAS:
-			return new BiasUnit();
-		default:
-			return null;
+		Unit unit = new Unit(unitType);
+		if (unitType == UnitType.BIAS) {
+			setupBiasUnit(unit);
 		}
+		return unit;
 	}
 
-	public enum UnitType {
-		VISIBLE, HIDDEN, BIAS
+	private static void setupBiasUnit(Unit unit) {
+		unit.setState(1.0f);
+		Random rand = new Random();
+		unit.setActivationEnergy(rand.nextGaussian());
 	}
 }
