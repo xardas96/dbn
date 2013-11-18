@@ -49,7 +49,7 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 				for (int j = 0; j < lastOutputLayer.size(); j++) {
 					Unit unit = lastOutputLayer.getUnit(j);
 					double der = unit.calculateActivationChangeProbabilityDerrivate();
-					double delt = output[j] - unit.getState();
+					double delt = output[j] - unit.getActivationProbability();
 					lastOutputLayerDeltas[j] = der * delt;
 				}
 				deltas[deltas.length - 1] = lastOutputLayerDeltas;
@@ -85,7 +85,8 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 					}
 				}
 				for (int j = 0; j < lastOutputLayer.size(); j++) {
-					double delta = Math.pow((output[j] - lastOutputLayer.getUnit(j).getActivationProbability()), 2);
+					double delt = output[j] - lastOutputLayer.getUnit(j).getActivationProbability();
+					double delta = delt * delt;
 					currentError += delta;
 				}
 				System.out.println(currentError + " " + trainingVectors.indexOf(vector));
