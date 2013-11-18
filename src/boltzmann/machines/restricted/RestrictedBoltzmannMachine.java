@@ -53,11 +53,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		createThreadManager();
 	}
 	
-	public void setBiasLayersAndConectors(Layer visibleBias, Layer hiddenBias, LayerConnector visibleBiasConnector, LayerConnector hiddenBiasConnector) {
+	public void setBiasLayers(Layer visibleBias, Layer hiddenBias) {
 		biases.add(visibleBias);
 		biases.add(hiddenBias);
-		connections.add(visibleBiasConnector);
-		connections.add(hiddenBiasConnector);
 	}
 	
 	public Layer getBiasForLayer(Layer layer) {
@@ -78,9 +76,10 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	private void createBiasLayers(LayerConnectorWeightInitializer weightInitializer) {
 		for(Layer layer : layers) {
 			Layer biasLayer = new Layer(layer.size(), UnitType.BIAS);
+			for(Unit bias : biasLayer.getUnits()) {
+				bias.setActivationEnergy(weightInitializer.getWeight());
+			}
 			biases.add(biasLayer);
-			LayerConnector connection = new LayerConnector(layer, biasLayer, weightInitializer);
-			connections.add(connection);
 		}
 	}
 

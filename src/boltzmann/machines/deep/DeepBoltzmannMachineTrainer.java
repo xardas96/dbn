@@ -49,7 +49,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			RestrictedBoltzmannMachine rbm = new RestrictedBoltzmannMachine(firstLayer, secondLayer, dbm.getLayerConnector(secondLayer));
 			Layer firstBias = dbm.getBiasForLayer(firstLayer);
 			Layer secondBias = dbm.getBiasForLayer(secondLayer);
-			rbm.setBiasLayersAndConectors(firstBias, secondBias, dbm.getLayerConnector(firstBias), dbm.getLayerConnector(secondBias));
+			rbm.setBiasLayers(firstBias, secondBias);
 			// dla wszystkich wektorów ucz¹cych przejdŸ przez sieæ, aktywuj i przepisz prawdopodobieñstwa jako stany
 			List<InputStateVector> newTrainingVectors = new ArrayList<>();
 			for (InputStateVector vector : trainingVectors) {
