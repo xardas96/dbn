@@ -7,8 +7,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.javatuples.Pair;
-
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
 import boltzmann.layers.LayerConnectorWeightInitializer;
@@ -52,16 +50,16 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		createArrays();
 		createThreadManager();
 	}
-	
+
 	public void setBiasLayers(Layer visibleBias, Layer hiddenBias) {
 		biases.add(visibleBias);
 		biases.add(hiddenBias);
 	}
-	
+
 	public Layer getBiasForLayer(Layer layer) {
 		return biases.get(layers.indexOf(layer));
 	}
-	
+
 	public void createThreadManager() {
 		threadManager = new TrainingThreadManager();
 	}
@@ -74,9 +72,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	private void createBiasLayers(LayerConnectorWeightInitializer weightInitializer) {
-		for(Layer layer : layers) {
+		for (Layer layer : layers) {
 			Layer biasLayer = new Layer(layer.size(), UnitType.BIAS);
-			for(Unit bias : biasLayer.getUnits()) {
+			for (Unit bias : biasLayer.getUnits()) {
 				bias.setActivationEnergy(weightInitializer.getWeight());
 			}
 			biases.add(biasLayer);
@@ -298,8 +296,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	private class TrainingThreadManager implements Serializable {
 		private static final long serialVersionUID = -289822615383262058L;
 		private int cores;
-		private List<Pair<Integer, Integer>> visibleSplits;
-		private List<Pair<Integer, Integer>> hiddenSplits;
+		private List<ThreadInterval> visibleSplits;
+		private List<ThreadInterval> hiddenSplits;
 
 		public TrainingThreadManager() {
 			cores = Runtime.getRuntime().availableProcessors();
@@ -311,16 +309,16 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			for (int i = 0; i < cores; i++) {
 				int visibleSplit = i * visibleSplitSize;
 				int hiddenSplit = i * hiddenSplitSize;
-				visibleSplits.add(new Pair<>(visibleSplit, visibleSplit + visibleSplitSize));
-				hiddenSplits.add(new Pair<>(hiddenSplit, hiddenSplit + hiddenSplitSize));
+				visibleSplits.add(new ThreadInterval(visibleSplit, visibleSplit + visibleSplitSize));
+				hiddenSplits.add(new ThreadInterval(hiddenSplit, hiddenSplit + hiddenSplitSize));
 			}
 			int lastVisibleSplit = visibleSplitSize * cores;
 			int lastHiddenSplit = hiddenSplitSize * cores;
 			if (lastVisibleSplit < visibleLayer.size()) {
-				visibleSplits.add(new Pair<>(lastVisibleSplit - 1, visibleLayer.size() - 1));
+				visibleSplits.add(new ThreadInterval(lastVisibleSplit - 1, visibleLayer.size() - 1));
 			}
 			if (lastHiddenSplit < hiddenLayer.size()) {
-				hiddenSplits.add(new Pair<>(lastHiddenSplit - 1, hiddenLayer.size() - 1));
+				hiddenSplits.add(new ThreadInterval(lastHiddenSplit - 1, hiddenLayer.size() - 1));
 			}
 		}
 
@@ -328,11 +326,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weigths = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : visibleSplits) {
+			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visible = visibleLayer.getUnit(i);
 							for (int j = 0; j < weigths[i].length; j++) {
 								Unit hidden = hiddenLayer.getUnit(j);
@@ -357,11 +355,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : visibleSplits) {
+			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visibleUnit = visibleLayer.getUnit(i);
 							for (int j = 0; j < weights[i].length; j++) {
 								Unit hiddenUnit = hiddenLayer.getUnit(j);
@@ -385,11 +383,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			LayerConnector connector = getLayerConnector(visibleLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : visibleSplits) {
+			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							for (int j = 0; j < weights[i].length; j++) {
 								weights[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
 							}
@@ -410,11 +408,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		public void updateBiasWeights(final double learningFactor) {
 			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
 			List<Callable<Void>> hiddenTasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : hiddenSplits) {
+			for (final ThreadInterval interval : hiddenSplits) {
 				hiddenTasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit hiddenBiasUnit = hiddenBias.getUnit(i);
 							double factor = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
 							hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + factor);
@@ -425,11 +423,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			}
 			List<Callable<Void>> visibleTasks = new ArrayList<>();
 			final Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
-			for (final Pair<Integer, Integer> p : visibleSplits) {
+			for (final ThreadInterval interval : visibleSplits) {
 				visibleTasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visibleBiasUnit = visibleBias.getUnit(i);
 							double factor = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
 							visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + factor);
@@ -453,11 +451,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : hiddenSplits) {
+			for (final ThreadInterval interval : hiddenSplits) {
 				tasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							double activationEnergy = 0.0f;
 							Unit hiddenUnit = hiddenLayer.getUnit(i);
 							for (int j = 0; j < weights.length; j++) {
@@ -485,11 +483,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weigths = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : visibleSplits) {
+			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visibleUnit = visibleLayer.getUnit(i);
 							double[] weightsForUnit = weigths[i];
 							double activationEnergy = 0.0f;
@@ -519,11 +517,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
-			for (final Pair<Integer, Integer> p : hiddenSplits) {
+			for (final ThreadInterval interval : hiddenSplits) {
 				tasks.add(new Callable<Void>() {
 					@Override
 					public Void call() throws Exception {
-						for (int i = p.getValue0(); i < p.getValue1(); i++) {
+						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							double activationEnergy = 0.0f;
 							Unit hiddenUnit = hiddenLayer.getUnit(i);
 							for (int j = 0; j < weights.length; j++) {
@@ -547,6 +545,24 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	private class ThreadInterval {
+		private int start;
+		private int stop;
+
+		public ThreadInterval(int start, int stop) {
+			this.start = start;
+			this.stop = stop;
+		}
+
+		public int getStart() {
+			return start;
+		}
+
+		public int getStop() {
+			return stop;
 		}
 	}
 }
