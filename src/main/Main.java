@@ -2,14 +2,11 @@ package main;
 
 import io.ObjectIOManager;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import mnist.MNISTDigitElement;
@@ -25,6 +22,7 @@ import boltzmann.machines.restricted.RestrictedBoltzmannMachineTrainer;
 import boltzmann.training.AdaptiveLearningFactor;
 import boltzmann.training.TrainingStepCompletedListener;
 import boltzmann.vectors.InputStateVector;
+import dbn.BackpropagationDeepBeliefNetworkTrainer;
 import dbn.DeepBeliefNetwork;
 
 public class Main {
@@ -43,9 +41,9 @@ public class Main {
 				return;
 			}
 		} else {
-//			testRestrictedBoltzmannMachine();
-			testDeepBoltzmannMachine();
-//			testDeepBeliefNetwork();
+			// testRestrictedBoltzmannMachine();
+			// testDeepBoltzmannMachine();
+			testDeepBeliefNetwork();
 		}
 	}
 
@@ -129,51 +127,48 @@ public class Main {
 	private static void testDeepBeliefNetwork() {
 		final MNISTReader reader = new MNISTReader(new File("mnist/train-labels-idx1-ubyte.gz"), new File("mnist/train-images-idx3-ubyte.gz"));
 		if (reader.verify()) {
-			reader.createTrainingSet(10);
+			reader.createTrainingSet(200);
 		}
 		List<InputStateVector> training = reader.getTrainingSetItems();
 		try {
 			DeepBoltzmannMachine dbm = ObjectIOManager.load(new File("E:\\Dropbox\\rbm test\\deep_boltzmann.dbm"));
 			dbm.createThreadManager();
-			InputStateVector testVector = training.get(2);
-			InputStateVector tempVector = new InputStateVector(testVector.getInputStates());
-			for (int j = 0; j < dbm.getLayers().size() - 1; j++) {
-				dbm.resetStates();
-				dbm.initializeVisibleLayerStates(tempVector);
-				dbm.updateHiddenUnits();
-				tempVector.setInputStates(dbm.getHiddenLayerStates());
-				if (j != dbm.getLayers().size() - 2) {
-					dbm.ascendLayers();
-				}
-			}
-			for (int j = dbm.getLayers().size() - 1; j >= 1; j--) {
-				dbm.resetStates();
-				dbm.initializeHiddenLayerStates(tempVector);
-				dbm.reconstructVisibleUnits();
-				tempVector.setInputStates(dbm.getVisibleLayerStates());
-				if (j != 1) {
-					dbm.descendLayers();
-				}
-			}
-			int[] output = new int[tempVector.size()];
-			for (int i = 0; i < tempVector.size(); i++) {
-				output[i] = (int) Math.round(tempVector.get(i) * 255.0f);
-			}
+			// InputStateVector testVector = training.get(2);
+			// InputStateVector tempVector = new
+			// InputStateVector(testVector.getInputStates());
+			// for (int j = 0; j < dbm.getLayers().size() - 1; j++) {
+			// dbm.resetStates();
+			// dbm.initializeVisibleLayerStates(tempVector);
+			// dbm.updateHiddenUnits();
+			// tempVector.setInputStates(dbm.getHiddenLayerStates());
+			// if (j != dbm.getLayers().size() - 2) {
+			// dbm.ascendLayers();
+			// }
+			// }
+			// for (int j = dbm.getLayers().size() - 1; j >= 1; j--) {
+			// dbm.resetStates();
+			// dbm.initializeHiddenLayerStates(tempVector);
+			// dbm.reconstructVisibleUnits();
+			// tempVector.setInputStates(dbm.getVisibleLayerStates());
+			// if (j != 1) {
+			// dbm.descendLayers();
+			// }
+			// }
+			// int[] output = new int[tempVector.size()];
+			// for (int i = 0; i < tempVector.size(); i++) {
+			// output[i] = (int) Math.round(tempVector.get(i) * 255.0f);
+			// }
+			//
+			// BufferedImage out = new BufferedImage(28, 28,
+			// BufferedImage.TYPE_INT_RGB);
+			// WritableRaster r = out.getRaster();
+			// r.setDataElements(0, 0, 28, 28, output);
+			// ImageIO.write(out, "png", new File("test.png"));
 
-			BufferedImage out = new BufferedImage(28, 28, BufferedImage.TYPE_INT_RGB);
-			WritableRaster r = out.getRaster();
-			r.setDataElements(0, 0, 28, 28, output);
-			ImageIO.write(out, "png", new File("test.png"));
-
-//			 DeepBeliefNetwork dbn =
-//			 BoltzmannMachineFactory.getDeepBeliefNetwork(dbm,
-//			 LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(),
-//			 10);
-//			 BackpropagationDeepBeliefNetworkTrainer trainer = new
-//			 BackpropagationDeepBeliefNetworkTrainer(dbn, new
-//			 AdaptiveLearningFactor(), 25);
-//			 trainer.train(training);
-			 ObjectIOManager.save(dbm, new File("dbn_backproped.dbn"));
+			DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), 10);
+			BackpropagationDeepBeliefNetworkTrainer trainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(), 25);
+			trainer.train(training);
+			ObjectIOManager.save(dbm, new File("dbn_backproped.dbn"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

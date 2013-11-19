@@ -548,7 +548,8 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 	}
 
-	private class ThreadInterval {
+	private class ThreadInterval implements Serializable {
+		private static final long serialVersionUID = -2893486993086729245L;
 		private int start;
 		private int stop;
 
