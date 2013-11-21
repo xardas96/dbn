@@ -4,7 +4,6 @@ import io.ObjectIOManager;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -20,7 +19,9 @@ import boltzmann.machines.factory.BoltzmannMachineFactory;
 import boltzmann.machines.restricted.RestrictedBoltzmannMachine;
 import boltzmann.machines.restricted.RestrictedBoltzmannMachineTrainer;
 import boltzmann.training.AdaptiveLearningFactor;
+import boltzmann.training.TrainingBatchCompletedListener;
 import boltzmann.training.TrainingStepCompletedListener;
+import boltzmann.units.Unit;
 import boltzmann.vectors.InputStateVector;
 import dbn.BackpropagationDeepBeliefNetworkTrainer;
 import dbn.DeepBeliefNetwork;
@@ -43,7 +44,8 @@ public class Main {
 		} else {
 			// testRestrictedBoltzmannMachine();
 			// testDeepBoltzmannMachine();
-			testDeepBeliefNetwork();
+			// testDeepBeliefNetwork();
+			testClassification();
 		}
 	}
 
@@ -133,42 +135,17 @@ public class Main {
 		try {
 			DeepBoltzmannMachine dbm = ObjectIOManager.load(new File("E:\\Dropbox\\rbm test\\deep_boltzmann.dbm"));
 			dbm.createThreadManager();
-			// InputStateVector testVector = training.get(2);
-			// InputStateVector tempVector = new
-			// InputStateVector(testVector.getInputStates());
-			// for (int j = 0; j < dbm.getLayers().size() - 1; j++) {
-			// dbm.resetStates();
-			// dbm.initializeVisibleLayerStates(tempVector);
-			// dbm.updateHiddenUnits();
-			// tempVector.setInputStates(dbm.getHiddenLayerStates());
-			// if (j != dbm.getLayers().size() - 2) {
-			// dbm.ascendLayers();
-			// }
-			// }
-			// for (int j = dbm.getLayers().size() - 1; j >= 1; j--) {
-			// dbm.resetStates();
-			// dbm.initializeHiddenLayerStates(tempVector);
-			// dbm.reconstructVisibleUnits();
-			// tempVector.setInputStates(dbm.getVisibleLayerStates());
-			// if (j != 1) {
-			// dbm.descendLayers();
-			// }
-			// }
-			// int[] output = new int[tempVector.size()];
-			// for (int i = 0; i < tempVector.size(); i++) {
-			// output[i] = (int) Math.round(tempVector.get(i) * 255.0f);
-			// }
-			//
-			// BufferedImage out = new BufferedImage(28, 28,
-			// BufferedImage.TYPE_INT_RGB);
-			// WritableRaster r = out.getRaster();
-			// r.setDataElements(0, 0, 28, 28, output);
-			// ImageIO.write(out, "png", new File("test.png"));
+			DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), 10);
+			BackpropagationDeepBeliefNetworkTrainer trainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.2, 1, 1), 25);
+			trainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
 
-			DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), 10);
-			BackpropagationDeepBeliefNetworkTrainer trainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(), 25);
+				@Override
+				public void onTrainingBatchComplete(int currentEpoch, double currentError, double currentLearningFactor) {
+					System.out.println("Epoch: " + currentEpoch + ", error: " + currentError + ", learning factor: " + currentLearningFactor);
+				}
+			});
 			trainer.train(training);
-			ObjectIOManager.save(dbm, new File("dbn_backproped.dbn"));
+			ObjectIOManager.save(dbn, new File("dbn_backproped.dbn"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -179,23 +156,34 @@ public class Main {
 		if (reader.verify()) {
 			reader.createTrainingSet(100);
 		}
-		List<InputStateVector> training = reader.getTrainingSetItems();
 		List<InputStateVector> testing = reader.getTestingSetItems();
-
 		try {
+			int count = 0;
 			DeepBeliefNetwork dbn = ObjectIOManager.load(new File("E:\\Dropbox\\rbm test\\dbn_backproped.dbn"));
-			dbn.resetStates();
-
-			InputStateVector vector = testing.get(0);
-
-			double[] output = vector.getOutputStates();
-			dbn.getFirstLayer().initStates(vector);
-			for (int j = 1; j < dbn.getLayers().size(); j++) {
-				Layer outputLayer = dbn.getLayers().get(j);
-				dbn.updateUnits(outputLayer);
+			for (InputStateVector vector : testing) {
+				dbn.resetStates();
+				dbn.getFirstLayer().initStates(vector);
+				for (int j = 1; j < dbn.getLayers().size(); j++) {
+					Layer outputLayer = dbn.getLayers().get(j);
+					dbn.updateUnits(outputLayer);
+				}
+				Layer last = dbn.getLastLayer();
+				int maxIndex = -1;
+				double maxProb = Double.MIN_VALUE;
+				for (int i = 0; i < last.size(); i++) {
+					Unit u = last.getUnit(i);
+					double prob = u.getActivationProbability();
+					if (prob > maxProb) {
+						maxProb = prob;
+						maxIndex = i;
+					}
+				}
+				int lab = Integer.valueOf(vector.getLabel());
+				if (lab == maxIndex) {
+					count++;
+				}
+				System.out.println(testing.indexOf(vector) + ": " + count + "/" + testing.size());
 			}
-			Layer last = dbn.getLastLayer();
-			System.out.println(Arrays.toString(output) + Arrays.toString(dbn.getLastLayer().getStates()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

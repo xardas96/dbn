@@ -43,6 +43,12 @@ public class LayerConnector implements Serializable {
 		return weights;
 	}
 
+	public void setWeightsForTopUnit(int unitIndex, double[] newWeights) {
+		for (int i = 0; i < bottomLayer.size(); i++) {
+			unitConnectionWeights[i][unitIndex] = newWeights[i];
+		}
+	}
+
 	@Override
 	public String toString() {
 		return topLayer.toString() + " " + bottomLayer.toString();

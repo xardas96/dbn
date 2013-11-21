@@ -25,7 +25,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		this.maxError = maxError;
 		this.trainingStepCompletedListeners = new ArrayList<>();
 	}
-	
+
 	public void setBm(B bm) {
 		this.bm = bm;
 	}
@@ -50,19 +50,15 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 				InputStateVector vector = trainingVectors.get(j);
 				train(vector, trainigBatchSize, learningFactor.getLearningFactor());
 				error += calculateErrorDelta(vector);
-				if (!trainingStepCompletedListeners.isEmpty()) {
-					for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
-						trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
-					}
+				for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
+					trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
 				}
 				bm.resetStates();
 			}
 			error /= trainingVectors.size();
 			learningFactor.updateLearningFactor(previousError, error);
-			if (!trainingStepCompletedListeners.isEmpty()) {
-				for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
-					trainingStepCompletedListener.onTrainingBatchComplete(i, error, learningFactor.getLearningFactor());
-				}
+			for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
+				trainingStepCompletedListener.onTrainingBatchComplete(i, error, learningFactor.getLearningFactor());
 			}
 			previousError = error;
 		}
