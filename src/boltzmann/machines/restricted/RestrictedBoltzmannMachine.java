@@ -91,6 +91,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void updateUnits(Layer firstLayer) {
+		int index = layers.indexOf(firstLayer);
+		Layer bias = null;
+		if(index > -1 && index < biases.size()) {
+			bias = biases.get(layers.indexOf(firstLayer));
+		}
 		LayerConnector connector = getLayerConnector(firstLayer);
 		Layer secondLayer = connector.getBottomLayer().equals(firstLayer) ? connector.getTopLayer() : connector.getBottomLayer();
 		double[][] weights = connector.getUnitConnectionWeights();
@@ -100,6 +105,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			for (int j = 0; j < weights.length; j++) {
 				Unit secondUnit = secondLayer.getUnit(j);
 				activationEnergy += secondUnit.getState() * weights[j][i];
+			}
+			if(bias != null) {
+				activationEnergy += bias.getUnit(i).getActivationProbability();
 			}
 			firstUnit.setActivationEnergy(activationEnergy);
 			firstUnit.calculateActivationChangeProbability();

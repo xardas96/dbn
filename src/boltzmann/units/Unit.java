@@ -2,6 +2,8 @@ package boltzmann.units;
 
 import java.io.Serializable;
 
+import utils.Utils;
+
 public class Unit implements Serializable {
 	private static final long serialVersionUID = 2284449408927311676L;
 	private UnitType unitType;
@@ -22,11 +24,11 @@ public class Unit implements Serializable {
 	}
 
 	public void calculateActivationChangeProbability() {
-		activationProbability = sigmoidFunction(activationEnergy);
+		activationProbability = Utils.sigmoid(activationEnergy);
 	}
 
 	public double calculateActivationChangeProbabilityDerrivate() {
-		return sigmoidFunction(activationEnergy) * (1.0 - sigmoidFunction(activationEnergy));
+		return Utils.sigmoidDerivative(activationEnergy);
 	}
 
 	public void setState(double state) {
@@ -48,10 +50,6 @@ public class Unit implements Serializable {
 		}
 	}
 
-	private double sigmoidFunction(double x) {
-		return 1.0 / (1.0 + Math.exp(-x));
-	}
-	
 	public UnitType getUnitType() {
 		return unitType;
 	}

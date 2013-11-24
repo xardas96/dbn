@@ -24,6 +24,7 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 		this.dbn.resetLayers();
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
+		trainingBatchCompletedListeners = new ArrayList<>();
 	}
 
 	public void addTrainingBatchCompletedListener(TrainingBatchCompletedListener trainingBatchCompletedListener) {

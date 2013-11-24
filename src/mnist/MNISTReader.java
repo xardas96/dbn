@@ -91,11 +91,13 @@ public class MNISTReader {
 		}
 	}
 
-	public List<InputStateVector> getTrainingSetItems() {
+	public List<InputStateVector> getTrainingSetItems(boolean binarize) {
 		List<InputStateVector> output = new ArrayList<>();
 		for (List<MNISTDigitElement> element : trainingSet.values()) {
-			for (MNISTDigitElement el : element) {
-				el.binarize();
+			for (MNISTDigitElement el : element) {	
+				if(binarize) {
+					el.binarize();
+				}
 				output.add(el);
 			}
 		}
@@ -106,11 +108,13 @@ public class MNISTReader {
 		return testSet;
 	}
 
-	public List<InputStateVector> getTestingSetItems() {
+	public List<InputStateVector> getTestingSetItems(boolean binarize) {
 		List<InputStateVector> output = new ArrayList<>();
 		for (List<MNISTDigitElement> element : testSet.values()) {
 			for (MNISTDigitElement el : element) {
-				el.binarize();
+				if(binarize) {
+					el.binarize();
+				}
 				output.add(el);
 			}
 		}

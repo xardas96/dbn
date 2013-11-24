@@ -59,7 +59,7 @@ public class Main {
 		if (reader.verify()) {
 			reader.createTrainingSet(100);
 		}
-		List<InputStateVector> training = reader.getTrainingSetItems();
+		List<InputStateVector> training = reader.getTrainingSetItems(true);
 		final int numVisible = reader.getCols() * reader.getRows();
 		final int numHidden = 10 * 10;
 
@@ -116,7 +116,7 @@ public class Main {
 		if (reader.verify()) {
 			reader.createTrainingSet(200);
 		}
-		List<InputStateVector> training = reader.getTrainingSetItems();
+		List<InputStateVector> training = reader.getTrainingSetItems(true);
 		DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), 784, 1000, 1000, 1000);
 		DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.01, 1, 1), 100, Double.MIN_VALUE);
 		trainer.train(training);
@@ -131,7 +131,7 @@ public class Main {
 		if (reader.verify()) {
 			reader.createTrainingSet(200);
 		}
-		List<InputStateVector> training = reader.getTrainingSetItems();
+		List<InputStateVector> training = reader.getTrainingSetItems(true);
 		try {
 			DeepBoltzmannMachine dbm = ObjectIOManager.load(new File("E:\\Dropbox\\rbm test\\deep_boltzmann.dbm"));
 			dbm.createThreadManager();
@@ -156,7 +156,7 @@ public class Main {
 		if (reader.verify()) {
 			reader.createTrainingSet(100);
 		}
-		List<InputStateVector> testing = reader.getTestingSetItems();
+		List<InputStateVector> testing = reader.getTestingSetItems(true);
 		try {
 			int count = 0;
 			DeepBeliefNetwork dbn = ObjectIOManager.load(new File("E:\\Dropbox\\rbm test\\dbn_backproped.dbn"));
