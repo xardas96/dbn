@@ -35,8 +35,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		visibleLayer = layers.get(0);
 		hiddenLayer = layers.get(1);
 		createArrays();
-		createBiasLayers(weightInitializer);
-		threadManager = new TrainingThreadManager();
+		createBiasLayers();
 		createThreadManager();
 	}
 
@@ -71,12 +70,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		biases = new ArrayList<>();
 	}
 
-	private void createBiasLayers(LayerConnectorWeightInitializer weightInitializer) {
+	private void createBiasLayers() {
 		for (Layer layer : layers) {
 			Layer biasLayer = new Layer(layer.size(), UnitType.BIAS);
-			for (Unit bias : biasLayer.getUnits()) {
-				bias.setActivationEnergy(weightInitializer.getWeight());
-			}
 			biases.add(biasLayer);
 		}
 	}
@@ -93,21 +89,21 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	public void updateUnits(Layer firstLayer) {
 		int index = layers.indexOf(firstLayer);
 		Layer bias = null;
-		if(index > -1 && index < biases.size()) {
+		if (index > -1 && index < biases.size()) {
 			bias = biases.get(layers.indexOf(firstLayer));
 		}
 		LayerConnector connector = getLayerConnector(firstLayer);
 		Layer secondLayer = connector.getBottomLayer().equals(firstLayer) ? connector.getTopLayer() : connector.getBottomLayer();
 		double[][] weights = connector.getUnitConnectionWeights();
 		for (int i = 0; i < firstLayer.size(); i++) {
-			double activationEnergy = 0.0f;
+			double activationEnergy = 0;
 			Unit firstUnit = firstLayer.getUnit(i);
 			for (int j = 0; j < weights.length; j++) {
 				Unit secondUnit = secondLayer.getUnit(j);
 				activationEnergy += secondUnit.getState() * weights[j][i];
 			}
-			if(bias != null) {
-				activationEnergy += bias.getUnit(i).getActivationProbability();
+			if (bias != null) {
+				activationEnergy += bias.getUnit(i).getActivationEnergy();
 			}
 			firstUnit.setActivationEnergy(activationEnergy);
 			firstUnit.calculateActivationChangeProbability();
@@ -123,11 +119,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void updateHiddenUnitsSync() {
-		Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+		Layer hiddenBias = getBiasForLayer(hiddenLayer);
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		double[][] weights = connector.getUnitConnectionWeights();
 		for (int i = 0; i < hiddenLayer.size(); i++) {
-			double activationEnergy = 0.0f;
+			double activationEnergy = 0;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
 			for (int j = 0; j < weights.length; j++) {
 				Unit visibleUnit = visibleLayer.getUnit(j);
@@ -146,13 +142,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void calculatePositiveGradientSync() {
-		LayerConnector connector = getLayerConnector(hiddenLayer);
-		double[][] weights = connector.getUnitConnectionWeights();
-		for (int i = 0; i < weights.length; i++) {
+		for (int i = 0; i < visibleLayer.size(); i++) {
 			Unit visibleUnit = visibleLayer.getUnit(i);
-			for (int j = 0; j < weights[i].length; j++) {
+			for (int j = 0; j < hiddenLayer.size(); j++) {
 				Unit hiddenUnit = hiddenLayer.getUnit(j);
-				positiveGradient[i][j] = visibleUnit.getState() * hiddenUnit.getActivationProbability();
+				positiveGradient[i][j] = visibleUnit.getState() * hiddenUnit.getState();
 			}
 		}
 	}
@@ -165,15 +159,15 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void reconstructVisibleUnitsSync() {
-		Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+		Layer visibleBias = getBiasForLayer(visibleLayer);
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		double[][] weigths = connector.getUnitConnectionWeights();
 		for (int i = 0; i < visibleLayer.size(); i++) {
 			Unit visibleUnit = visibleLayer.getUnit(i);
 			double[] weightsForUnit = weigths[i];
-			double activationEnergy = 0.0f;
+			double activationEnergy = 0;
 			for (int j = 0; j < weightsForUnit.length; j++) {
-				activationEnergy += hiddenLayer.getUnit(j).getActivationProbability() * weightsForUnit[j];
+				activationEnergy += hiddenLayer.getUnit(j).getState() * weightsForUnit[j];
 			}
 			activationEnergy += visibleBias.getUnit(i).getActivationEnergy();
 			visibleUnit.setActivationEnergy(activationEnergy);
@@ -187,18 +181,19 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void reconstructHiddenUnitsSync() {
-		Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+		Layer hiddenBias = getBiasForLayer(hiddenLayer);
 		LayerConnector connector = getLayerConnector(hiddenLayer);
 		double[][] weights = connector.getUnitConnectionWeights();
 		for (int i = 0; i < hiddenLayer.size(); i++) {
-			double activationEnergy = 0.0f;
+			double activationEnergy = 0;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
 			for (int j = 0; j < weights.length; j++) {
-				activationEnergy += visibleLayer.getUnit(j).getActivationProbability() * weights[j][i];
+				activationEnergy += visibleLayer.getUnit(j).getState() * weights[j][i];
 			}
 			activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
 			hiddenUnit.setActivationEnergy(activationEnergy);
 			hiddenUnit.calculateActivationChangeProbability();
+			hiddenUnit.tryToTurnOn();
 		}
 	}
 
@@ -207,13 +202,11 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 	}
 
 	public void calculateNegativeGradientSync() {
-		LayerConnector connector = getLayerConnector(hiddenLayer);
-		double[][] weigths = connector.getUnitConnectionWeights();
-		for (int i = 0; i < weigths.length; i++) {
+		for (int i = 0; i < visibleLayer.size(); i++) {
 			Unit visible = visibleLayer.getUnit(i);
-			for (int j = 0; j < weigths[i].length; j++) {
+			for (int j = 0; j < hiddenLayer.size(); j++) {
 				Unit hidden = hiddenLayer.getUnit(j);
-				negativeGradient[i][j] = visible.getActivationProbability() * hidden.getActivationProbability();
+				negativeGradient[i][j] = visible.getState() * hidden.getState();
 			}
 		}
 	}
@@ -331,8 +324,6 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 
 		public void calculateNegativeGradient() {
-			LayerConnector connector = getLayerConnector(hiddenLayer);
-			final double[][] weigths = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
 			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
@@ -340,9 +331,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visible = visibleLayer.getUnit(i);
-							for (int j = 0; j < weigths[i].length; j++) {
+							for (int j = 0; j < hiddenLayer.size(); j++) {
 								Unit hidden = hiddenLayer.getUnit(j);
-								negativeGradient[i][j] = visible.getActivationProbability() * hidden.getActivationProbability();
+								negativeGradient[i][j] = visible.getState() * hidden.getState();
 							}
 						}
 
@@ -360,8 +351,6 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 
 		public void calculatePositiveGradient() {
-			LayerConnector connector = getLayerConnector(hiddenLayer);
-			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
 			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
@@ -369,9 +358,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visibleUnit = visibleLayer.getUnit(i);
-							for (int j = 0; j < weights[i].length; j++) {
+							for (int j = 0; j < hiddenLayer.size(); j++) {
 								Unit hiddenUnit = hiddenLayer.getUnit(j);
-								positiveGradient[i][j] = visibleUnit.getState() * hiddenUnit.getActivationProbability();
+								positiveGradient[i][j] = visibleUnit.getState() * hiddenUnit.getState();
 							}
 						}
 						return null;
@@ -414,7 +403,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 
 		public void updateBiasWeights(final double learningFactor) {
-			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+			final Layer hiddenBias = getBiasForLayer(hiddenLayer);
 			List<Callable<Void>> hiddenTasks = new ArrayList<>();
 			for (final ThreadInterval interval : hiddenSplits) {
 				hiddenTasks.add(new Callable<Void>() {
@@ -430,7 +419,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 				});
 			}
 			List<Callable<Void>> visibleTasks = new ArrayList<>();
-			final Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+			final Layer visibleBias = getBiasForLayer(visibleLayer);
 			for (final ThreadInterval interval : visibleSplits) {
 				visibleTasks.add(new Callable<Void>() {
 					@Override
@@ -455,7 +444,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 
 		public void reconstructHiddenUnits() {
-			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+			final Layer hiddenBias = getBiasForLayer(hiddenLayer);
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
@@ -464,14 +453,15 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					@Override
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
-							double activationEnergy = 0.0f;
+							double activationEnergy = 0;
 							Unit hiddenUnit = hiddenLayer.getUnit(i);
 							for (int j = 0; j < weights.length; j++) {
-								activationEnergy += visibleLayer.getUnit(j).getActivationProbability() * weights[j][i];
+								activationEnergy += visibleLayer.getUnit(j).getState() * weights[j][i];
 							}
 							activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
 							hiddenUnit.setActivationEnergy(activationEnergy);
 							hiddenUnit.calculateActivationChangeProbability();
+							hiddenUnit.tryToTurnOn();
 						}
 						return null;
 					}
@@ -487,7 +477,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 
 		public void reconstructVisibleUnits() {
-			final Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
+			final Layer visibleBias = getBiasForLayer(visibleLayer);
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weigths = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
@@ -498,9 +488,9 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visibleUnit = visibleLayer.getUnit(i);
 							double[] weightsForUnit = weigths[i];
-							double activationEnergy = 0.0f;
+							double activationEnergy = 0;
 							for (int j = 0; j < weightsForUnit.length; j++) {
-								activationEnergy += hiddenLayer.getUnit(j).getActivationProbability() * weightsForUnit[j];
+								activationEnergy += hiddenLayer.getUnit(j).getState() * weightsForUnit[j];
 							}
 							activationEnergy += visibleBias.getUnit(i).getActivationEnergy();
 							visibleUnit.setActivationEnergy(activationEnergy);
@@ -521,7 +511,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 
 		public void updateHiddenUnits() {
-			final Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
+			final Layer hiddenBias = getBiasForLayer(hiddenLayer);
 			LayerConnector connector = getLayerConnector(hiddenLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
 			List<Callable<Void>> tasks = new ArrayList<>();
@@ -530,7 +520,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					@Override
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
-							double activationEnergy = 0.0f;
+							double activationEnergy = 0;
 							Unit hiddenUnit = hiddenLayer.getUnit(i);
 							for (int j = 0; j < weights.length; j++) {
 								Unit visibleUnit = visibleLayer.getUnit(j);

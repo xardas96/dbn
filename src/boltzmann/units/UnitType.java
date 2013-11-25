@@ -1,5 +1,5 @@
 package boltzmann.units;
 
 public enum UnitType {
-	BIAS, HIDDEN, VISIBLE
+	BIAS, HIDDEN, VISIBLE, VISIBLE_GAUSSIAN;
 }

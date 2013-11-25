@@ -12,6 +12,16 @@ import dbn.DeepBeliefNetwork;
 
 public abstract class BoltzmannMachineFactory {
 
+	public static RestrictedBoltzmannMachine getGaussianBernoulliRestrictedBoltzmannMachine(LayerConnectorWeightInitializer weightInitializer, int visibleLayerCapacity, int hiddenLayerCapacity) {
+		Layer visibleLayer = new Layer(visibleLayerCapacity, UnitType.VISIBLE_GAUSSIAN);
+		Layer hiddenlayer = new Layer(hiddenLayerCapacity, UnitType.HIDDEN);
+		List<Layer> layers = new ArrayList<>();
+		layers.add(visibleLayer);
+		layers.add(hiddenlayer);
+		RestrictedBoltzmannMachine rbm = new RestrictedBoltzmannMachine(layers, weightInitializer);
+		return rbm;
+	}
+	
 	public static RestrictedBoltzmannMachine getRestrictedBoltzmannMachine(LayerConnectorWeightInitializer weightInitializer, int visibleLayerCapacity, int hiddenLayerCapacity) {
 		Layer visibleLayer = new Layer(visibleLayerCapacity, UnitType.VISIBLE);
 		Layer hiddenlayer = new Layer(hiddenLayerCapacity, UnitType.HIDDEN);
@@ -21,7 +31,7 @@ public abstract class BoltzmannMachineFactory {
 		RestrictedBoltzmannMachine rbm = new RestrictedBoltzmannMachine(layers, weightInitializer);
 		return rbm;
 	}
-
+	
 	public static DeepBoltzmannMachine getDeepBotlzmannMachine(LayerConnectorWeightInitializer weightInitializer, Integer... layerCounts) {
 		int inputLayerSize = layerCounts[0];
 		List<Layer> layers = new ArrayList<>();

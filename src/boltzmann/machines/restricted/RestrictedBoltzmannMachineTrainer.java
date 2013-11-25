@@ -18,7 +18,7 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 	@Override
 	protected void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor) {
 		trainAsync(trainingVector, trainingVectorSize, learningFactor);
-		// trainSync(trainingVector, trainingVectorSize, learningFactor);
+//		trainSync(trainingVector, trainingVectorSize, learningFactor);
 	}
 
 	private void trainAsync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor) {

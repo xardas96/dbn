@@ -47,6 +47,8 @@ public class Unit implements Serializable {
 		double rand = Math.random();
 		if (activationProbability > rand) {
 			state = 1;
+		} else {
+			state = 0;
 		}
 	}
 

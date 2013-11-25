@@ -2,6 +2,7 @@ package main;
 
 import io.ObjectIOManager;
 
+import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,9 @@ import dbn.DeepBeliefNetwork;
 
 public class Main {
 
+	static double mean;
+	static double stdev;
+
 	public static void main(String[] args) {
 		if (args.length > 0) {
 			switch (args[0]) {
@@ -42,10 +46,11 @@ public class Main {
 				return;
 			}
 		} else {
-			// testRestrictedBoltzmannMachine();
+//			 testRestrictedBoltzmannMachine();
 			// testDeepBoltzmannMachine();
 			// testDeepBeliefNetwork();
-			testClassification();
+			// testClassification();
+			testGaussian();
 		}
 	}
 
@@ -70,7 +75,7 @@ public class Main {
 			tests.add(test);
 		}
 
-		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), numVisible, numHidden);
+		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), numVisible, numHidden);
 		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 500, Double.MIN_VALUE);
 		t.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
@@ -95,7 +100,115 @@ public class Main {
 					double[] vis = rbm.getVisibleLayerStates();
 					int[] output = new int[vis.length];
 					for (int j = 0; j < vis.length; j++) {
-						output[j] = (int) Math.round(vis[j] * 255.0f);
+						output[j] = (int) (vis[j] * 255);
+						output[j] = new Color(output[j], output[j], output[j]).getRGB();
+					}
+					outputs.add(output);
+				}
+				p.setOutputs(outputs);
+				p.repaint();
+				System.out.println("Epoch: " + currentEpoch + ", error: " + currentError + ", learning factor: " + currentLearningFactor);
+			}
+		});
+		t.train(training);
+		try {
+			ObjectIOManager.save(rbm, new File("mnist.rbm"));
+		} catch (Exception e) {
+		}
+	}
+
+	private static void testGaussian() {
+		final MnistPanel p = new MnistPanel();
+		JFrame f = new JFrame();
+		f.setContentPane(p);
+		f.setVisible(true);
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		final MNISTReader reader = new MNISTReader(new File("mnist/train-labels-idx1-ubyte.gz"), new File("mnist/train-images-idx3-ubyte.gz"));
+		if (reader.verify()) {
+			reader.createTrainingSet(100);
+		}
+		List<InputStateVector> training = reader.getTrainingSetItems(false);
+		final int numVisible = reader.getCols() * reader.getRows();
+		final int numHidden = 10 * 10;
+
+		final List<MNISTDigitElement> tests = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			MNISTDigitElement test = reader.getTestItem(i);
+			for (int j = 0; j < test.size(); j++) {
+				test.set(i, test.get(i) / 255);
+			}
+			tests.add(test);
+		}
+
+		for (InputStateVector vector : training) {
+			for (int i = 0; i < vector.size(); i++) {
+				vector.set(i, vector.get(i) / 255);
+			}
+		}
+
+		mean = 0;
+		stdev = 0;
+		for (InputStateVector vector : training) {
+			for (int i = 0; i < vector.size(); i++) {
+				mean += vector.get(i);
+			}
+		}
+		mean /= training.size() * training.get(0).size();
+
+		for (InputStateVector vector : training) {
+			for (int i = 0; i < vector.size(); i++) {
+				stdev += (mean - vector.get(i)) * (mean - vector.get(i));
+			}
+		}
+
+		stdev /= training.size() * training.get(0).size();
+		stdev = Math.sqrt(stdev);
+
+		for (InputStateVector vector : training) {
+			for (int i = 0; i < vector.size(); i++) {
+				vector.set(i, (vector.get(i) - mean) / stdev);
+			}
+		}
+
+		System.out.println(mean + " " + stdev);
+
+		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getGaussianBernoulliRestrictedBoltzmannMachine(LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), numVisible, numHidden);
+		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(0.001, 1, 1), 500, Double.MIN_VALUE);
+		t.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
+
+			@Override
+			public void onTrainingStepComplete(int step, int trainingBatchSize) {
+				if (step % 100 == 0) {
+					System.out.println("step " + step + "/" + trainingBatchSize);
+				}
+			}
+
+			@Override
+			public void onTrainingBatchComplete(int currentEpoch, double currentError, double currentLearningFactor) {
+				List<int[]> outputs = new ArrayList<>();
+				for (int i = 0; i < tests.size(); i++) {
+					MNISTDigitElement test = tests.get(i);
+					for (int j = 0; j < test.size(); j++) {
+						test.set(j, (test.get(j) - mean) / stdev);
+					}
+					rbm.resetStates();
+					rbm.initializeVisibleLayerStates(test);
+					rbm.updateHiddenUnits();
+					rbm.resetVisibleStates();
+					rbm.reconstructVisibleUnits();
+					rbm.reconstructHiddenUnits();
+					double[] vis = rbm.getVisibleLayerStates();
+					int[] output = new int[vis.length];
+					for (int j = 0; j < vis.length; j++) {
+						double d = (vis[j] + mean) * stdev;
+						output[j] = (int) Math.round(d * 255);
+						if (output[j] < 0) {
+							output[j] = 0;
+						}
+						if (output[j] > 255) {
+							output[j] = 255;
+						}
+						output[j] = new Color(output[j], output[j], output[j]).getRGB();
 					}
 					outputs.add(output);
 				}
