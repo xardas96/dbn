@@ -336,7 +336,6 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 								negativeGradient[i][j] = visible.getState() * hidden.getState();
 							}
 						}
-
 						return null;
 					}
 				});

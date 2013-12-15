@@ -15,7 +15,7 @@ public class InputStateVector {
 	public void setInputStates(double[] inputStates) {
 		this.inputStates = inputStates;
 	}
-
+	
 	public double[] getInputStates() {
 		return inputStates;
 	}

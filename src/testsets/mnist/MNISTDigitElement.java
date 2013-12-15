@@ -1,4 +1,4 @@
-package mnist;
+package testsets.mnist;
 
 import boltzmann.vectors.InputStateVector;
 

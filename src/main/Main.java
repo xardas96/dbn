@@ -9,9 +9,12 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-import mnist.MNISTDigitElement;
-import mnist.MNISTReader;
-import mnist.MnistPanel;
+import testsets.mfcc.MfccFileParser;
+import testsets.mfcc.MfccSample;
+import testsets.mnist.MNISTDigitElement;
+import testsets.mnist.MNISTReader;
+import testsets.mnist.MnistPanel;
+import utils.GaussianDistributionDataNormalizer;
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnectorWeightInitializerFactory;
 import boltzmann.machines.deep.DeepBoltzmannMachine;
@@ -29,10 +32,7 @@ import dbn.DeepBeliefNetwork;
 
 public class Main {
 
-	static double mean;
-	static double stdev;
-
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		if (args.length > 0) {
 			switch (args[0]) {
 			case "rbm":
@@ -46,11 +46,14 @@ public class Main {
 				return;
 			}
 		} else {
-//			 testRestrictedBoltzmannMachine();
+			// testRestrictedBoltzmannMachine();
 			// testDeepBoltzmannMachine();
 			// testDeepBeliefNetwork();
 			// testClassification();
-			testGaussian();
+//			testGaussian();
+			MfccFileParser p = new MfccFileParser("C:\\Users\\XardaS\\Desktop\\mfccs\\ASR\\Speakers", "C:\\Users\\XardaS\\Desktop\\mfccs\\ASR\\dictionary.db");
+			List<MfccSample> samples = p.loadSamples();
+			System.out.println();
 		}
 	}
 
@@ -146,31 +149,10 @@ public class Main {
 			}
 		}
 
-		mean = 0;
-		stdev = 0;
-		for (InputStateVector vector : training) {
-			for (int i = 0; i < vector.size(); i++) {
-				mean += vector.get(i);
-			}
-		}
-		mean /= training.size() * training.get(0).size();
+		final GaussianDistributionDataNormalizer normalizer = new GaussianDistributionDataNormalizer();
+		normalizer.normalizeTrainingSet(training);
 
-		for (InputStateVector vector : training) {
-			for (int i = 0; i < vector.size(); i++) {
-				stdev += (mean - vector.get(i)) * (mean - vector.get(i));
-			}
-		}
-
-		stdev /= training.size() * training.get(0).size();
-		stdev = Math.sqrt(stdev);
-
-		for (InputStateVector vector : training) {
-			for (int i = 0; i < vector.size(); i++) {
-				vector.set(i, (vector.get(i) - mean) / stdev);
-			}
-		}
-
-		System.out.println(mean + " " + stdev);
+		System.out.println(normalizer.getMean() + " " + normalizer.getStdev());
 
 		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getGaussianBernoulliRestrictedBoltzmannMachine(LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), numVisible, numHidden);
 		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(0.001, 1, 1), 500, Double.MIN_VALUE);
@@ -189,7 +171,7 @@ public class Main {
 				for (int i = 0; i < tests.size(); i++) {
 					MNISTDigitElement test = tests.get(i);
 					for (int j = 0; j < test.size(); j++) {
-						test.set(j, (test.get(j) - mean) / stdev);
+						test.set(j, (test.get(j) - normalizer.getMean()) / normalizer.getStdev());
 					}
 					rbm.resetStates();
 					rbm.initializeVisibleLayerStates(test);
@@ -200,7 +182,7 @@ public class Main {
 					double[] vis = rbm.getVisibleLayerStates();
 					int[] output = new int[vis.length];
 					for (int j = 0; j < vis.length; j++) {
-						double d = (vis[j] + mean) * stdev;
+						double d = (vis[j] + normalizer.getMean()) * normalizer.getStdev();
 						output[j] = (int) Math.round(d * 255);
 						if (output[j] < 0) {
 							output[j] = 0;

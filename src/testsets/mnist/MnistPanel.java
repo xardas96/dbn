@@ -1,4 +1,4 @@
-package mnist;
+package testsets.mnist;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
