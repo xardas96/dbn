@@ -17,6 +17,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	private List<TrainingStepCompletedListener> trainingStepCompletedListeners;
 	private double error;
 	private double previousError;
+	private int start;
 
 	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError) {
 		this.bm = bm;
@@ -30,8 +31,20 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		this.bm = bm;
 	}
 
+	public void setStart(int start) {
+		this.start = start;
+	}
+
 	public void addTrainingStepCompletedListener(TrainingStepCompletedListener trainingStepCompletedListener) {
 		trainingStepCompletedListeners.add(trainingStepCompletedListener);
+	}
+	
+	public void setLearningFactor(AdaptiveLearningFactor learningFactor) {
+		this.learningFactor = learningFactor;
+	}
+	
+	public AdaptiveLearningFactor getLearningFactor() {
+		return learningFactor;
 	}
 
 	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor);
@@ -43,7 +56,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		error = Double.MAX_VALUE;
 		previousError = 0;
 		int trainigBatchSize = trainingVectors.size();
-		for (int i = 0; i < maxEpochs && error > maxError; i++) {
+		for (int i = start; i < maxEpochs && error > maxError; i++) {
 			Collections.shuffle(trainingVectors);
 			error = 0;
 			for (int j = 0; j < trainigBatchSize; j++) {

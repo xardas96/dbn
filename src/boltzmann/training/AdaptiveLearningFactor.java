@@ -1,6 +1,9 @@
 package boltzmann.training;
 
-public class AdaptiveLearningFactor {
+import java.io.Serializable;
+
+public class AdaptiveLearningFactor implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private double learningFactor;
 	private double rhoD;
 	private double rhoI;

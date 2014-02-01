@@ -1,37 +1,30 @@
 package testsets.mfcc;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MfccSample {
-	private List<MfccVector> vectors;
+public class MfccSample implements Serializable {
+	private static final long serialVersionUID = 7459153355124894344L;
+	private List<PhoneTiming> vectors;
 	private String transcription;
-	private List<String> possiblePhonemes;
 
 	public MfccSample() {
 		vectors = new ArrayList<>();
 	}
-
-	public void addVector(MfccVector vector) {
-		vectors.add(vector);
+	
+	public void setVectors(List<PhoneTiming> vectors) {
+		this.vectors = vectors;
 	}
-
+	
+	public List<PhoneTiming> getVectors() {
+		return vectors;
+	}
+	
 	public void setTranscription(String transcription) {
 		this.transcription = transcription;
 	}
 
-	public String getTranscription() {
-		return transcription;
-	}
-
-	public void setPossiblePhonemes(List<String> possiblePhonemes) {
-		this.possiblePhonemes = possiblePhonemes;
-	}
-
-	public List<String> getPossiblePhonemes() {
-		return possiblePhonemes;
-	}
-	
 	@Override
 	public String toString() {
 		return transcription;

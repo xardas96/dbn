@@ -19,37 +19,37 @@ public class GaussianDistributionDataNormalizer implements Serializable {
 			}
 		}
 	}
-	
+
 	public void normalizeVector(InputStateVector vector) {
 		for (int j = 0; j < vector.size(); j++) {
 			vector.set(j, (vector.get(j) - mean) / stdev);
 		}
 	}
-	
+
 	public double getMean() {
 		return mean;
 	}
-	
+
 	public double getStdev() {
 		return stdev;
 	}
 
-	private void calculateMean(List<InputStateVector> training) {
-		for (InputStateVector vector : training) {
+	private void calculateMean(List<InputStateVector> data) {
+		for (InputStateVector vector : data) {
 			for (int i = 0; i < vector.size(); i++) {
 				mean += vector.get(i);
 			}
 		}
-		mean /= training.size() * training.get(0).size();
+		mean /= data.size() * data.get(0).size();
 	}
 
-	private void calculateStdev(List<InputStateVector> training) {
-		for (InputStateVector vector : training) {
+	private void calculateStdev(List<InputStateVector> data) {
+		for (InputStateVector vector : data) {
 			for (int i = 0; i < vector.size(); i++) {
 				stdev += (mean - vector.get(i)) * (mean - vector.get(i));
 			}
 		}
-		stdev /= training.size() * training.get(0).size();
+		stdev /= data.size() * data.get(0).size();
 		stdev = Math.sqrt(stdev);
 	}
 }

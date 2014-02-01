@@ -1,5 +1,7 @@
 package boltzmann.units;
 
+import java.util.Random;
+
 public class GaussianUnit extends Unit {
 	private static final long serialVersionUID = -2612593259321387301L;
 
@@ -9,6 +11,6 @@ public class GaussianUnit extends Unit {
 
 	@Override
 	public void tryToTurnOn() {
-		state = activationEnergy;
+		state = activationEnergy + new Random().nextGaussian();
 	}
 }

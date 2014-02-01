@@ -1,5 +1,9 @@
 package boltzmann.machines.deep;
 
+import io.ObjectIOManager;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,17 +21,30 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 	private AdaptiveLearningFactor learningFactor;
 	private int maxEpochs;
 	private double maxError;
+	private String layers;
+	private int start;
+	private int startLayer;
 
 	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError) {
 		this.dbm = dbm;
 		this.learningFactor = leariningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
+		this.start = 0;
+	}
+
+	public void setStart(int start) {
+		this.start = start;
+	}
+
+	public void setStartLayer(int startLayer) {
+		this.startLayer = startLayer;
 	}
 
 	@Override
 	public void train(List<InputStateVector> trainingVectors) {
 		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError);
+		rbmTrainer.setStart(start);
 		rbmTrainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 			@Override
@@ -40,9 +57,18 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			@Override
 			public void onTrainingBatchComplete(int currentEpoch, double currentError, double currentLearningFactor) {
 				System.out.println("Epoch: " + currentEpoch + ", error: " + currentError + ", learning factor: " + currentLearningFactor);
+				try {
+					String name = layers + currentEpoch;
+					ObjectIOManager.save(dbm, new File(name + ".net"));
+					ObjectIOManager.save(name, new File("stats.info"));
+					ObjectIOManager.save(learningFactor, new File("learning.factor"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
-		for (int i = 0; i < dbm.getLayers().size() - 1; i++) {
+		for (int i = startLayer; i < dbm.getLayers().size() - 1; i++) {
+			layers = i + "_" + (i + 1) + "_";
 			System.out.println("Pretraining layers " + i + " and " + (i + 1));
 			Layer firstLayer = dbm.getLayers().get(i);
 			Layer secondLayer = dbm.getLayers().get(i + 1);
@@ -50,7 +76,8 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			Layer firstBias = dbm.getBiasForLayer(firstLayer);
 			Layer secondBias = dbm.getBiasForLayer(secondLayer);
 			rbm.setBiasLayers(firstBias, secondBias);
-			// dla wszystkich wektorów ucz¹cych przejdŸ przez sieæ, aktywuj i przepisz prawdopodobieñstwa jako stany
+			// dla wszystkich wektorów ucz¹cych przejdŸ przez sieæ, aktywuj i
+			// przepisz prawdopodobieñstwa jako stany
 			List<InputStateVector> newTrainingVectors = new ArrayList<>();
 			for (InputStateVector vector : trainingVectors) {
 				InputStateVector tempVector = new InputStateVector();
@@ -65,6 +92,8 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			}
 			rbmTrainer.setBm(rbm);
 			rbmTrainer.train(newTrainingVectors);
+			rbmTrainer.setStart(0);
+			rbmTrainer.setLearningFactor(new AdaptiveLearningFactor(0.001, 0.8, 1.5));
 		}
 	}
 }

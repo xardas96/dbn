@@ -3,6 +3,7 @@ package testsets.mnist;
 import boltzmann.vectors.InputStateVector;
 
 public class MNISTDigitElement extends InputStateVector {
+	private static final long serialVersionUID = -1425485618742412445L;
 
 	public MNISTDigitElement(double[] inputStates) {
 		super(inputStates);
