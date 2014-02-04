@@ -37,14 +37,46 @@ public class TestingMain {
 		for (InputStateVector vector : trainingSet) {
 			trainingPhones.add(vector.getLabel());
 		}
-		testPhoneClassification(trainingSet, new ArrayList<String>(trainingPhones), DBN_NAME, "training");
+		List<InputStateVector> trainings = new ArrayList<>();
+		for (String phone : trainingPhones) {
+			int i = 0;
+			int j = 0;
+			while (i < trainingSet.size()) {
+				InputStateVector vec = trainingSet.get(i);
+				if (vec.getLabel().equals(phone)) {
+					trainings.add(vec);
+					j++;
+				}
+				if (j == 100) {
+					break;
+				}
+				i++;
+			}
+		}
+		testPhoneClassification(trainings, new ArrayList<String>(trainingPhones), DBN_NAME, "training");
 
 		List<InputStateVector> testSet = ObjectIOManager.load(new File("testing.data"));
 		Set<String> testingPhones = new HashSet<>();
 		for (InputStateVector vector : testSet) {
 			testingPhones.add(vector.getLabel());
 		}
-		testPhoneClassification(testSet, new ArrayList<String>(testingPhones), DBN_NAME, "testing");
+		List<InputStateVector> tests = new ArrayList<>();
+		for (String phone : trainingPhones) {
+			int i = 0;
+			int j = 0;
+			while (i < testSet.size()) {
+				InputStateVector vec = testSet.get(i);
+				if (vec.getLabel().equals(phone)) {
+					tests.add(vec);
+					j++;
+				}
+				if (j == 100) {
+					break;
+				}
+				i++;
+			}
+		}
+		testPhoneClassification(tests, new ArrayList<String>(testingPhones), DBN_NAME, "testing");
 	}
 
 	private static void testPhoneClassification(final List<InputStateVector> training, final List<String> phones, final String dbnFileName, final String outputDir) throws Exception {
@@ -170,7 +202,6 @@ public class TestingMain {
 					matrix.increaseTrueNegative();
 				}
 			}
-
 			File output = new File(PATH + "\\" + outputDir + "\\results-" + UUID.randomUUID() + ".txt");
 			BufferedWriter bw = new BufferedWriter(new FileWriter(output));
 			bw.write(positivePhone);
