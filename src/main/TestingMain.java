@@ -141,7 +141,11 @@ public class TestingMain {
 		}
 		exec.shutdown();
 
-		File output = new File(PATH + "\\" + outputDir + "\\results-all.txt");
+		File dir = new File(SAVE_PATH + "\\" + outputDir);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		File output = new File(SAVE_PATH + "\\" + outputDir + "\\results-all.txt");
 		BufferedWriter bw = new BufferedWriter(new FileWriter(output));
 		bw.write("all");
 		bw.newLine();
@@ -202,7 +206,11 @@ public class TestingMain {
 					matrix.increaseTrueNegative();
 				}
 			}
-			File output = new File(PATH + "\\" + outputDir + "\\results-" + UUID.randomUUID() + ".txt");
+			File dir = new File(SAVE_PATH + "\\" + outputDir);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			File output = new File(SAVE_PATH + "\\" + outputDir + "\\results-" + UUID.randomUUID() + ".txt");
 			BufferedWriter bw = new BufferedWriter(new FileWriter(output));
 			bw.write(positivePhone);
 			bw.newLine();
@@ -247,5 +255,4 @@ public class TestingMain {
 		phone.replaceAll("~", "-");
 		return phone;
 	}
-
 }

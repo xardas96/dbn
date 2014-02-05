@@ -37,19 +37,19 @@ public class ConfusionMatrix {
 	public void setFalseNegative(int falseNegative) {
 		this.falseNegative = falseNegative;
 	}
-	
+
 	public void increaseTruePositive() {
 		truePositive++;
 	}
-	
+
 	public void increaseTrueNegative() {
 		trueNegative++;
 	}
-	
+
 	public void increaseFalsePositive() {
 		falsePositive++;
 	}
-	
+
 	public void increaseFalseNegative() {
 		falseNegative++;
 	}
