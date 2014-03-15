@@ -154,7 +154,7 @@ public class Main {
 				// BoltzmannMachineFactory.getDeepBeliefNetwork(dbm,
 				// LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(),
 				// phones.size());
-				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.02, 1, 1), 25);
+				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.02, 1, 1), 25, 0.9);
 				backPropTrainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
 
 					@Override
@@ -374,7 +374,7 @@ public class Main {
 			DeepBoltzmannMachine dbm = ObjectIOManager.load(new File("E:\\Dropbox\\rbm test\\deep_boltzmann.dbm"));
 			dbm.createThreadManager();
 			DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), 10);
-			BackpropagationDeepBeliefNetworkTrainer trainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.2, 1, 1), 25);
+			BackpropagationDeepBeliefNetworkTrainer trainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.2, 1, 1), 25, 0.9);
 			trainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
 
 				@Override

@@ -26,17 +26,18 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 	private List<TrainingBatchCompletedListener> trainingBatchCompletedListeners;
 	private int maxEpochs;
 	private double previousError;
-
+	private double momentum;
 	private TrainingThreadManager threadManager;
 	private List<Layer> outputLayers = new ArrayList<>();
 	private double[][] deltas;
 	private int start;
 
-	public BackpropagationDeepBeliefNetworkTrainer(DeepBeliefNetwork dbn, AdaptiveLearningFactor learningFactor, int maxEpochs) {
+	public BackpropagationDeepBeliefNetworkTrainer(DeepBeliefNetwork dbn, AdaptiveLearningFactor learningFactor, int maxEpochs, double momentum) {
 		this.dbn = dbn;
 		this.dbn.resetLayers();
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
+		this.momentum = momentum;
 		trainingBatchCompletedListeners = new ArrayList<>();
 	}
 
@@ -139,10 +140,15 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 		LayerConnector connector = dbn.getLayerConnector(outputLayer);
 		for (int k = 0; k < outputLayer.size(); k++) {
 			double[] weights = connector.getWeightsForTopUnit(k);
+			double[] weightSteps = connector.getWeightStepsForTopUnit(k);
 			for (int l = 0; l < weights.length; l++) {
-				weights[l] += learningFactor.getLearningFactor() * deltas[j][k] * connector.getBottomLayer().getUnit(l).getActivationProbability();
+				double thisWeightStep = learningFactor.getLearningFactor() * deltas[j][k] * connector.getBottomLayer().getUnit(l).getActivationProbability();
+				weightSteps[l] *= momentum;
+				weightSteps[l] += thisWeightStep;
+				weights[l] += weightSteps[l];
 			}
 			connector.setWeightsForTopUnit(k, weights);
+			connector.setWeigthStepsForTopUnit(k, weightSteps);
 		}
 	}
 
@@ -210,10 +216,15 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							double[] weights = connector.getWeightsForTopUnit(i);
+							double[] weightSteps = connector.getWeightStepsForTopUnit(i);
 							for (int l = 0; l < weights.length; l++) {
-								weights[l] += learningFactor.getLearningFactor() * deltas[j][i] * connector.getBottomLayer().getUnit(l).getActivationProbability();
+								double thisWeightStep = learningFactor.getLearningFactor() * deltas[j][i] * connector.getBottomLayer().getUnit(l).getActivationProbability();
+								weightSteps[l] *= momentum;
+								weightSteps[l] += thisWeightStep;
+								weights[l] += weightSteps[l];
 							}
 							connector.setWeightsForTopUnit(i, weights);
+							connector.setWeigthStepsForTopUnit(i, weightSteps);
 						}
 						return null;
 					}

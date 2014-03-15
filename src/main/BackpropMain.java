@@ -19,6 +19,9 @@ import dbn.DeepBeliefNetwork;
 public class BackpropMain {
 	private static final String PATH = "E:\\Dropbox\\mgr-asr";
 	private static final String SAVE_PATH = "E:\\Dropbox\\mfcc_new";
+	private static final int NUMBER_OF_EPOCHS = 25;
+	private static final double MOMENTUM = 0.9;
+	private static final AdaptiveLearningFactor LEARNING_FACTOR = new AdaptiveLearningFactor(0.02, 1, 1);
 
 	public static void main(String[] args) throws Exception {
 		ObjectIOManager.setSavePath(SAVE_PATH);
@@ -40,7 +43,7 @@ public class BackpropMain {
 				final DeepBeliefNetwork dbn = ObjectIOManager.load(list[0]);
 				String[] split = stats.split("_");
 				int start = Integer.valueOf(split[1]);
-				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.02, 1, 1), 25);
+				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, LEARNING_FACTOR, NUMBER_OF_EPOCHS, MOMENTUM);
 				backPropTrainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
 
 					@Override
@@ -55,7 +58,7 @@ public class BackpropMain {
 				List<String> phones = p.getPhones(new File(PATH + "\\phones"), true);
 				DeepBoltzmannMachine dbm = ObjectIOManager.load(list[0]);
 				final DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), phones.size());
-				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.02, 1, 1), 25);
+				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, LEARNING_FACTOR, NUMBER_OF_EPOCHS, MOMENTUM);
 				backPropTrainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
 
 					@Override
