@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import boltzmann.training.AdaptiveLearningFactor;
 import boltzmann.training.Trainer;
 import boltzmann.training.TrainingStepCompletedListener;
+import boltzmann.training.learningfactor.AdaptiveLearningFactor;
 import boltzmann.vectors.InputStateVector;
 
 public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implements Trainer {

@@ -10,12 +10,14 @@ import java.util.List;
 import boltzmann.layers.Layer;
 import boltzmann.machines.restricted.RestrictedBoltzmannMachine;
 import boltzmann.machines.restricted.RestrictedBoltzmannMachineTrainer;
-import boltzmann.training.AdaptiveLearningFactor;
 import boltzmann.training.Trainer;
 import boltzmann.training.TrainingStepCompletedListener;
+import boltzmann.training.learningfactor.AdaptiveLearningFactor;
+import boltzmann.training.learningfactor.ConstantLearningFactor;
 import boltzmann.vectors.InputStateVector;
 
 public class DeepBoltzmannMachineTrainer implements Trainer {
+	private static final double LEARINING_FACTOR_FOR_BINARY = 0.001;
 	private DeepBoltzmannMachine dbm;
 	private RestrictedBoltzmannMachineTrainer rbmTrainer;
 	private AdaptiveLearningFactor learningFactor;
@@ -93,7 +95,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			rbmTrainer.setBm(rbm);
 			rbmTrainer.train(newTrainingVectors);
 			rbmTrainer.setStart(0);
-			rbmTrainer.setLearningFactor(new AdaptiveLearningFactor(0.001, 0.8, 1.5));
+			rbmTrainer.setLearningFactor(new ConstantLearningFactor(LEARINING_FACTOR_FOR_BINARY));
 		}
 	}
 }

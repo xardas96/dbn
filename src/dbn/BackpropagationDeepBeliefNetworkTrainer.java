@@ -14,9 +14,9 @@ import java.util.concurrent.Executors;
 
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnector;
-import boltzmann.training.AdaptiveLearningFactor;
 import boltzmann.training.Trainer;
 import boltzmann.training.TrainingBatchCompletedListener;
+import boltzmann.training.learningfactor.AdaptiveLearningFactor;
 import boltzmann.units.Unit;
 import boltzmann.vectors.InputStateVector;
 

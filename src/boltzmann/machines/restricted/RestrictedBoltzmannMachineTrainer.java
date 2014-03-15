@@ -2,7 +2,7 @@ package boltzmann.machines.restricted;
 
 import boltzmann.layers.Layer;
 import boltzmann.machines.BoltzmannMachineTrainer;
-import boltzmann.training.AdaptiveLearningFactor;
+import boltzmann.training.learningfactor.AdaptiveLearningFactor;
 import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<RestrictedBoltzmannMachine> {

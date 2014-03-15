@@ -1,13 +1,13 @@
-package boltzmann.training;
+package boltzmann.training.learningfactor;
 
 import java.io.Serializable;
 
 public class AdaptiveLearningFactor implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private double learningFactor;
-	private double rhoD;
-	private double rhoI;
-	private int maxLearningFactorCounter;
+	protected double learningFactor;
+	protected double rhoD;
+	protected double rhoI;
+	protected int maxLearningFactorCounter;
 
 	public AdaptiveLearningFactor() {
 		this.learningFactor = 0.01;
