@@ -211,36 +211,48 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 	}
 
-	public void updateWeights(double learningFactor) {
-		threadManager.updateWeights(learningFactor);
+	public void updateWeights(double learningFactor, double momentum) {
+		threadManager.updateWeights(learningFactor, momentum);
 	}
 
-	public void updateWeightsSync(double learningFactor) {
+	public void updateWeightsSync(double learningFactor, double momentum) {
 		LayerConnector connector = getLayerConnector(visibleLayer);
 		double[][] weights = connector.getUnitConnectionWeights();
+		double[][] weightSteps = connector.getWeightSteps();
 		for (int i = 0; i < weights.length; i++) {
 			for (int j = 0; j < weights[i].length; j++) {
-				weights[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
+				double thisWeightStep = learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
+				weightSteps[i][j] *= momentum;
+				weightSteps[i][j] += thisWeightStep;
+				weights[i][j] += weightSteps[i][j];
 			}
 		}
 	}
 
-	public void updateBiasWeights(double learningFactor) {
-		threadManager.updateBiasWeights(learningFactor);
+	public void updateBiasWeights(double learningFactor, double momentum) {
+		threadManager.updateBiasWeights(learningFactor, momentum);
 	}
 
-	public void updateBiasWeightsSync(double learningFactor) {
+	public void updateBiasWeightsSync(double learningFactor, double momentum) {
 		Layer hiddenBias = biases.get(layers.indexOf(hiddenLayer));
 		for (int i = 0; i < hiddenBias.size(); i++) {
 			Unit hiddenBiasUnit = hiddenBias.getUnit(i);
-			double factor = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
-			hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + factor);
+			double thisWeightStep = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
+			double previousStepWithMomentum = hiddenBiasUnit.getState();
+			previousStepWithMomentum *= momentum;
+			previousStepWithMomentum += thisWeightStep;
+			hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + previousStepWithMomentum);
+			hiddenBiasUnit.setState(previousStepWithMomentum);
 		}
 		Layer visibleBias = biases.get(layers.indexOf(visibleLayer));
 		for (int i = 0; i < visibleBias.size(); i++) {
 			Unit visibleBiasUnit = visibleBias.getUnit(i);
-			double factor = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
-			visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + factor);
+			double thisWeightStep = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
+			double previousStepWithMomentum = visibleBiasUnit.getState();
+			previousStepWithMomentum *= momentum;
+			previousStepWithMomentum += thisWeightStep;
+			visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + previousStepWithMomentum);
+			visibleBiasUnit.setState(previousStepWithMomentum);
 		}
 	}
 
@@ -375,9 +387,10 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			}
 		}
 
-		public void updateWeights(final double learningFactor) {
+		public void updateWeights(final double learningFactor, final double momentum) {
 			LayerConnector connector = getLayerConnector(visibleLayer);
 			final double[][] weights = connector.getUnitConnectionWeights();
+			final double[][] weightSteps = connector.getWeightSteps();
 			List<Callable<Void>> tasks = new ArrayList<>();
 			for (final ThreadInterval interval : visibleSplits) {
 				tasks.add(new Callable<Void>() {
@@ -385,7 +398,10 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							for (int j = 0; j < weights[i].length; j++) {
-								weights[i][j] += learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
+								double thisWeightStep = learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
+								weightSteps[i][j] *= momentum;
+								weightSteps[i][j] += thisWeightStep;
+								weights[i][j] += weightSteps[i][j];
 							}
 						}
 						return null;
@@ -401,7 +417,7 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 			}
 		}
 
-		public void updateBiasWeights(final double learningFactor) {
+		public void updateBiasWeights(final double learningFactor, final double momentum) {
 			final Layer hiddenBias = getBiasForLayer(hiddenLayer);
 			List<Callable<Void>> hiddenTasks = new ArrayList<>();
 			for (final ThreadInterval interval : hiddenSplits) {
@@ -410,8 +426,12 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit hiddenBiasUnit = hiddenBias.getUnit(i);
-							double factor = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
-							hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + factor);
+							double thisWeightStep = learningFactor * (hiddenActivationProbabilities[i] - hiddenLayer.getUnit(i).getActivationProbability());
+							double previousStepWithMomentum = hiddenBiasUnit.getState();
+							previousStepWithMomentum *= momentum;
+							previousStepWithMomentum += thisWeightStep;
+							hiddenBiasUnit.setActivationEnergy(hiddenBiasUnit.getActivationEnergy() + previousStepWithMomentum);
+							hiddenBiasUnit.setState(previousStepWithMomentum);
 						}
 						return null;
 					}
@@ -425,8 +445,12 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 					public Void call() throws Exception {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							Unit visibleBiasUnit = visibleBias.getUnit(i);
-							double factor = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
-							visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + factor);
+							double thisWeightStep = learningFactor * (visibleStates[i] - visibleLayer.getUnit(i).getActivationProbability());
+							double previousStepWithMomentum = visibleBiasUnit.getState();
+							previousStepWithMomentum *= momentum;
+							previousStepWithMomentum += thisWeightStep;
+							visibleBiasUnit.setActivationEnergy(visibleBiasUnit.getActivationEnergy() + previousStepWithMomentum);
+							visibleBiasUnit.setState(previousStepWithMomentum);
 						}
 						return null;
 					}

@@ -7,21 +7,21 @@ import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<RestrictedBoltzmannMachine> {
 
-	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError) {
-		super(bm, learningFactor, maxEpochs, maxError);
+	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum) {
+		super(bm, learningFactor, maxEpochs, maxError, momentum);
 	}
 
-	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError) {
-		super(null, learningFactor, maxEpochs, maxError);
+	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum) {
+		super(null, learningFactor, maxEpochs, maxError, momentum);
 	}
 
 	@Override
-	protected void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor) {
-		trainAsync(trainingVector, trainingVectorSize, learningFactor);
-//		trainSync(trainingVector, trainingVectorSize, learningFactor);
+	protected void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum) {
+		trainAsync(trainingVector, trainingVectorSize, learningFactor, momentum);
+//		trainSync(trainingVector, trainingVectorSize, learningFactor, momentum);
 	}
 
-	private void trainAsync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor) {
+	private void trainAsync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum) {
 		bm.initializeVisibleLayerStates(trainingVector);
 		bm.updateHiddenUnits();
 		bm.calculatePositiveGradient();
@@ -29,12 +29,12 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 		bm.reconstructVisibleUnits();
 		bm.reconstructHiddenUnits();
 		bm.calculateNegativeGradient();
-		bm.updateWeights(learningFactor);
-		bm.updateBiasWeights(learningFactor);
+		bm.updateWeights(learningFactor, momentum);
+		bm.updateBiasWeights(learningFactor, momentum);
 	}
 
 	@SuppressWarnings("unused")
-	private void trainSync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor) {
+	private void trainSync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum) {
 		bm.initializeVisibleLayerStates(trainingVector);
 		bm.updateHiddenUnitsSync();
 		bm.calculatePositiveGradientSync();
@@ -42,8 +42,8 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 		bm.reconstructVisibleUnitsSync();
 		bm.reconstructHiddenUnitsSync();
 		bm.calculateNegativeGradientSync();
-		bm.updateWeightsSync(learningFactor);
-		bm.updateBiasWeightsSync(learningFactor);
+		bm.updateWeightsSync(learningFactor, momentum);
+		bm.updateBiasWeightsSync(learningFactor, momentum);
 	}
 
 	@Override

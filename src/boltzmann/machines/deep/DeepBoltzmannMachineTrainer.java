@@ -26,13 +26,15 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 	private String layers;
 	private int start;
 	private int startLayer;
+	private double momentum;
 
-	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError) {
+	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double momentum) {
 		this.dbm = dbm;
 		this.learningFactor = leariningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 		this.start = 0;
+		this.momentum = momentum;
 	}
 
 	public void setStart(int start) {
@@ -45,7 +47,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 
 	@Override
 	public void train(List<InputStateVector> trainingVectors) {
-		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError);
+		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, momentum);
 		rbmTrainer.setStart(start);
 		rbmTrainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
@@ -64,6 +66,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 					ObjectIOManager.save(dbm, new File(name + ".net"));
 					ObjectIOManager.save(name, new File("stats.info"));
 					ObjectIOManager.save(learningFactor, new File("learning.factor"));
+					ObjectIOManager.save(momentum, new File("momentum"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -78,8 +81,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			Layer firstBias = dbm.getBiasForLayer(firstLayer);
 			Layer secondBias = dbm.getBiasForLayer(secondLayer);
 			rbm.setBiasLayers(firstBias, secondBias);
-			// dla wszystkich wektorów ucz¹cych przejdŸ przez sieæ, aktywuj i
-			// przepisz prawdopodobieñstwa jako stany
+			// dla wszystkich wektorów ucz¹cych przejdŸ przez sieæ, aktywuj i przepisz prawdopodobieñstwa jako stany
 			List<InputStateVector> newTrainingVectors = new ArrayList<>();
 			for (InputStateVector vector : trainingVectors) {
 				InputStateVector tempVector = new InputStateVector();

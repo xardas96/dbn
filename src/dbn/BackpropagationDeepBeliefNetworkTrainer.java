@@ -43,7 +43,7 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 	public void addTrainingBatchCompletedListener(TrainingBatchCompletedListener trainingBatchCompletedListener) {
 		trainingBatchCompletedListeners.add(trainingBatchCompletedListener);
 	}
-	
+
 	public void setStart(int start) {
 		this.start = start;
 	}

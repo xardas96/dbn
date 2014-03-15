@@ -18,13 +18,15 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	private double error;
 	private double previousError;
 	private int start;
+	private double momentum;
 
-	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError) {
+	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum) {
 		this.bm = bm;
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 		this.trainingStepCompletedListeners = new ArrayList<>();
+		this.momentum = momentum;
 	}
 
 	public void setBm(B bm) {
@@ -38,16 +40,16 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	public void addTrainingStepCompletedListener(TrainingStepCompletedListener trainingStepCompletedListener) {
 		trainingStepCompletedListeners.add(trainingStepCompletedListener);
 	}
-	
+
 	public void setLearningFactor(AdaptiveLearningFactor learningFactor) {
 		this.learningFactor = learningFactor;
 	}
-	
+
 	public AdaptiveLearningFactor getLearningFactor() {
 		return learningFactor;
 	}
 
-	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor);
+	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum);
 
 	protected abstract double calculateErrorDelta(InputStateVector trainingVector);
 
@@ -61,7 +63,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 			error = 0;
 			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
-				train(vector, trainigBatchSize, learningFactor.getLearningFactor());
+				train(vector, trainigBatchSize, learningFactor.getLearningFactor(), momentum);
 				error += calculateErrorDelta(vector);
 				for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
 					trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);

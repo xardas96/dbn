@@ -21,6 +21,7 @@ public class RbmTrainingMain {
 	private static final double LEARINING_FACTOR_FOR_BINARY = 0.001;
 	private static final int HIDDEN_UNITS_COUNT = 1024;
 	private static final int TRAINING_EPOCHS = 100;
+	private static final double MOMENTUM = 0.9;
 
 	public static void main(String[] args) throws Exception {
 		ObjectIOManager.setSavePath(SAVE_PATH);
@@ -42,7 +43,6 @@ public class RbmTrainingMain {
 			List<InputStateVector> training = ObjectIOManager.load(new File("training.data"));
 			DeepBoltzmannMachine dbm = ObjectIOManager.load(list[0]);
 			dbm.createThreadManager();
-
 			File learningF = new File(SAVE_PATH + "\\learning.factor");
 			AdaptiveLearningFactor lf;
 			if (learningF.exists()) {
@@ -54,7 +54,14 @@ public class RbmTrainingMain {
 					lf = new ConstantLearningFactor(LEARINING_FACTOR_FOR_BINARY);
 				}
 			}
-			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, lf, TRAINING_EPOCHS, Double.MIN_VALUE);
+			double momentum;
+			File momentumFile = new File(SAVE_PATH + "\\momentum");
+			if (momentumFile.exists()) {
+				momentum = ObjectIOManager.load(new File("momentum"));
+			} else {
+				momentum = MOMENTUM;
+			}
+			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, lf, TRAINING_EPOCHS, Double.MIN_VALUE, momentum);
 			trainer.setStartLayer(lastLayer);
 			trainer.setStart(lastEpoch + 1);
 			trainer.train(training);
@@ -63,7 +70,7 @@ public class RbmTrainingMain {
 			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
 			DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
 			dbm.createThreadManager();
-			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new ConstantLearningFactor(LEARINING_FACTOR_FOR_GAUSSIAN), TRAINING_EPOCHS, Double.MIN_VALUE);
+			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new ConstantLearningFactor(LEARINING_FACTOR_FOR_GAUSSIAN), TRAINING_EPOCHS, Double.MIN_VALUE, MOMENTUM);
 			trainer.train(training);
 		}
 	}
