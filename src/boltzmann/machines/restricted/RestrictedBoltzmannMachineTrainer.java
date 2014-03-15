@@ -7,12 +7,12 @@ import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<RestrictedBoltzmannMachine> {
 
-	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum) {
-		super(bm, learningFactor, maxEpochs, maxError, momentum);
+	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k) {
+		super(bm, learningFactor, maxEpochs, maxError, momentum, k);
 	}
 
-	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum) {
-		super(null, learningFactor, maxEpochs, maxError, momentum);
+	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k) {
+		super(null, learningFactor, maxEpochs, maxError, momentum, k);
 	}
 
 	@Override

@@ -19,14 +19,16 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	private double previousError;
 	private int start;
 	private double momentum;
+	private int k;
 
-	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum) {
+	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k) {
 		this.bm = bm;
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 		this.trainingStepCompletedListeners = new ArrayList<>();
 		this.momentum = momentum;
+		this.k = k;
 	}
 
 	public void setBm(B bm) {
@@ -63,12 +65,14 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 			error = 0;
 			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
-				train(vector, trainigBatchSize, learningFactor.getLearningFactor(), momentum);
-				error += calculateErrorDelta(vector);
-				for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
-					trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize);
+				for (int cd = 0; cd < k; cd++) {
+					train(vector, trainigBatchSize, learningFactor.getLearningFactor(), momentum);
+					error += calculateErrorDelta(vector);
+					for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
+						trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize, cd);
+					}
+					bm.resetStates();
 				}
-				bm.resetStates();
 			}
 			error /= trainingVectors.size();
 			learningFactor.updateLearningFactor(previousError, error);

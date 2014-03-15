@@ -13,11 +13,9 @@ import boltzmann.machines.restricted.RestrictedBoltzmannMachineTrainer;
 import boltzmann.training.Trainer;
 import boltzmann.training.TrainingStepCompletedListener;
 import boltzmann.training.learningfactor.AdaptiveLearningFactor;
-import boltzmann.training.learningfactor.ConstantLearningFactor;
 import boltzmann.vectors.InputStateVector;
 
 public class DeepBoltzmannMachineTrainer implements Trainer {
-	private static final double LEARINING_FACTOR_FOR_BINARY = 0.001;
 	private DeepBoltzmannMachine dbm;
 	private RestrictedBoltzmannMachineTrainer rbmTrainer;
 	private AdaptiveLearningFactor learningFactor;
@@ -27,14 +25,16 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 	private int start;
 	private int startLayer;
 	private double momentum;
+	private int k;
 
-	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double momentum) {
+	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double momentum, int k) {
 		this.dbm = dbm;
 		this.learningFactor = leariningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 		this.start = 0;
 		this.momentum = momentum;
+		this.k = k;
 	}
 
 	public void setStart(int start) {
@@ -47,14 +47,14 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 
 	@Override
 	public void train(List<InputStateVector> trainingVectors) {
-		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, momentum);
+		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, momentum, k);
 		rbmTrainer.setStart(start);
 		rbmTrainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 			@Override
-			public void onTrainingStepComplete(int step, int trainingBatchSize) {
+			public void onTrainingStepComplete(int step, int trainingBatchSize, int cdK) {
 				if (step % 100 == 0) {
-					System.out.println("step " + step + "/" + trainingBatchSize);
+					System.out.println("step " + step + "/" + trainingBatchSize + " cd " + cdK);
 				}
 			}
 
@@ -97,7 +97,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 			rbmTrainer.setBm(rbm);
 			rbmTrainer.train(newTrainingVectors);
 			rbmTrainer.setStart(0);
-			rbmTrainer.setLearningFactor(new ConstantLearningFactor(LEARINING_FACTOR_FOR_BINARY));
+			rbmTrainer.setLearningFactor(learningFactor);
 		}
 	}
 }

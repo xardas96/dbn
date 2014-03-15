@@ -194,7 +194,7 @@ public class Main {
 				Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, 3072, 3072, 3072, 3072, 3072 };
 				DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
 				dbm.createThreadManager();
-				DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.001, 0.8, 1.5), 100, Double.MIN_VALUE, 0.9);
+				DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.001, 0.8, 1.5), 100, Double.MIN_VALUE, 0.9, 1);
 				trainer.train(training);
 			}
 		}
@@ -222,11 +222,11 @@ public class Main {
 		}
 
 		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(false, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), numVisible, numHidden);
-		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 500, Double.MIN_VALUE, 0.9);
+		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(), 500, Double.MIN_VALUE, 0.9, 1);
 		t.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 			@Override
-			public void onTrainingStepComplete(int step, int trainingBatchSize) {
+			public void onTrainingStepComplete(int step, int trainingBatchSize, int cdK) {
 				if (step % 100 == 0) {
 					System.out.println("step " + step + "/" + trainingBatchSize);
 				}
@@ -298,11 +298,11 @@ public class Main {
 		System.out.println(normalizer.getMean() + " " + normalizer.getStdev());
 
 		final RestrictedBoltzmannMachine rbm = BoltzmannMachineFactory.getRestrictedBoltzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), numVisible, numHidden);
-		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(0.001, 1, 1), 500, Double.MIN_VALUE, 0.9);
+		RestrictedBoltzmannMachineTrainer t = new RestrictedBoltzmannMachineTrainer(rbm, new AdaptiveLearningFactor(0.001, 1, 1), 500, Double.MIN_VALUE, 0.9,1);
 		t.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 			@Override
-			public void onTrainingStepComplete(int step, int trainingBatchSize) {
+			public void onTrainingStepComplete(int step, int trainingBatchSize, int cdK) {
 				if (step % 100 == 0) {
 					System.out.println("step " + step + "/" + trainingBatchSize);
 				}
@@ -356,7 +356,7 @@ public class Main {
 		}
 		List<InputStateVector> training = reader.getTrainingSetItems(true);
 		DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(false, LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), 784, 1000, 1000, 1000);
-		DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.01, 1, 1), 100, Double.MIN_VALUE, 0.9);
+		DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.01, 1, 1), 100, Double.MIN_VALUE, 0.9,1);
 		trainer.train(training);
 		try {
 			ObjectIOManager.save(dbm, new File("deep_boltzmann.dbm"));
