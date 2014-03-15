@@ -7,22 +7,23 @@ import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<RestrictedBoltzmannMachine> {
 
-	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k) {
-		super(bm, learningFactor, maxEpochs, maxError, momentum, k);
+	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
+		super(bm, learningFactor, maxEpochs, maxError, momentum, k, dropOutProbability);
 	}
 
-	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k) {
-		super(null, learningFactor, maxEpochs, maxError, momentum, k);
+	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
+		super(null, learningFactor, maxEpochs, maxError, momentum, k, dropOutProbability);
 	}
 
 	@Override
-	protected void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum) {
-		trainAsync(trainingVector, trainingVectorSize, learningFactor, momentum);
-//		trainSync(trainingVector, trainingVectorSize, learningFactor, momentum);
+	protected void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum, double dropOutProbability) {
+		trainAsync(trainingVector, trainingVectorSize, learningFactor, momentum, dropOutProbability);
+//		trainSync(trainingVector, trainingVectorSize, learningFactor, momentum, dropOutProbability);
 	}
 
-	private void trainAsync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum) {
+	private void trainAsync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum, double dropOutProbability) {
 		bm.initializeVisibleLayerStates(trainingVector);
+		bm.dropOutHiddenUnits(dropOutProbability);
 		bm.updateHiddenUnits();
 		bm.calculatePositiveGradient();
 		bm.resetVisibleStates();
@@ -34,8 +35,9 @@ public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<R
 	}
 
 	@SuppressWarnings("unused")
-	private void trainSync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum) {
+	private void trainSync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum, double dropOutProbability) {
 		bm.initializeVisibleLayerStates(trainingVector);
+		bm.dropOutHiddenUnitsSync(dropOutProbability);
 		bm.updateHiddenUnitsSync();
 		bm.calculatePositiveGradientSync();
 		bm.resetVisibleStates();

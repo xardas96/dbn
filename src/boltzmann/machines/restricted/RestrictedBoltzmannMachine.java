@@ -111,6 +111,14 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		}
 	}
 
+	public void dropOutHiddenUnits(double probability) {
+		dropOutHiddenUnitsSync(probability);
+	}
+
+	public void dropOutHiddenUnitsSync(double probability) {
+		hiddenLayer.dropOut(probability);
+	}
+
 	/**
 	 * reality phase
 	 */
@@ -125,15 +133,17 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		for (int i = 0; i < hiddenLayer.size(); i++) {
 			double activationEnergy = 0;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
-			for (int j = 0; j < weights.length; j++) {
-				Unit visibleUnit = visibleLayer.getUnit(j);
-				activationEnergy += visibleUnit.getState() * weights[j][i];
+			if (!hiddenUnit.isDroppedOut()) {
+				for (int j = 0; j < weights.length; j++) {
+					Unit visibleUnit = visibleLayer.getUnit(j);
+					activationEnergy += visibleUnit.getState() * weights[j][i];
+				}
+				activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
+				hiddenUnit.setActivationEnergy(activationEnergy);
+				hiddenUnit.calculateActivationChangeProbability();
+				hiddenActivationProbabilities[i] = hiddenUnit.getActivationProbability();
+				hiddenUnit.tryToTurnOn();
 			}
-			activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
-			hiddenUnit.setActivationEnergy(activationEnergy);
-			hiddenUnit.calculateActivationChangeProbability();
-			hiddenActivationProbabilities[i] = hiddenUnit.getActivationProbability();
-			hiddenUnit.tryToTurnOn();
 		}
 	}
 
@@ -187,13 +197,15 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		for (int i = 0; i < hiddenLayer.size(); i++) {
 			double activationEnergy = 0;
 			Unit hiddenUnit = hiddenLayer.getUnit(i);
-			for (int j = 0; j < weights.length; j++) {
-				activationEnergy += visibleLayer.getUnit(j).getState() * weights[j][i];
+			if (!hiddenUnit.isDroppedOut()) {
+				for (int j = 0; j < weights.length; j++) {
+					activationEnergy += visibleLayer.getUnit(j).getState() * weights[j][i];
+				}
+				activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
+				hiddenUnit.setActivationEnergy(activationEnergy);
+				hiddenUnit.calculateActivationChangeProbability();
+				hiddenUnit.tryToTurnOn();
 			}
-			activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
-			hiddenUnit.setActivationEnergy(activationEnergy);
-			hiddenUnit.calculateActivationChangeProbability();
-			hiddenUnit.tryToTurnOn();
 		}
 	}
 
@@ -478,13 +490,15 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							double activationEnergy = 0;
 							Unit hiddenUnit = hiddenLayer.getUnit(i);
-							for (int j = 0; j < weights.length; j++) {
-								activationEnergy += visibleLayer.getUnit(j).getState() * weights[j][i];
+							if (!hiddenUnit.isDroppedOut()) {
+								for (int j = 0; j < weights.length; j++) {
+									activationEnergy += visibleLayer.getUnit(j).getState() * weights[j][i];
+								}
+								activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
+								hiddenUnit.setActivationEnergy(activationEnergy);
+								hiddenUnit.calculateActivationChangeProbability();
+								hiddenUnit.tryToTurnOn();
 							}
-							activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
-							hiddenUnit.setActivationEnergy(activationEnergy);
-							hiddenUnit.calculateActivationChangeProbability();
-							hiddenUnit.tryToTurnOn();
 						}
 						return null;
 					}
@@ -545,15 +559,17 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							double activationEnergy = 0;
 							Unit hiddenUnit = hiddenLayer.getUnit(i);
-							for (int j = 0; j < weights.length; j++) {
-								Unit visibleUnit = visibleLayer.getUnit(j);
-								activationEnergy += visibleUnit.getState() * weights[j][i];
+							if (!hiddenUnit.isDroppedOut()) {
+								for (int j = 0; j < weights.length; j++) {
+									Unit visibleUnit = visibleLayer.getUnit(j);
+									activationEnergy += visibleUnit.getState() * weights[j][i];
+								}
+								activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
+								hiddenUnit.setActivationEnergy(activationEnergy);
+								hiddenUnit.calculateActivationChangeProbability();
+								hiddenActivationProbabilities[i] = hiddenUnit.getActivationProbability();
+								hiddenUnit.tryToTurnOn();
 							}
-							activationEnergy += hiddenBias.getUnit(i).getActivationEnergy();
-							hiddenUnit.setActivationEnergy(activationEnergy);
-							hiddenUnit.calculateActivationChangeProbability();
-							hiddenActivationProbabilities[i] = hiddenUnit.getActivationProbability();
-							hiddenUnit.tryToTurnOn();
 						}
 						return null;
 					}

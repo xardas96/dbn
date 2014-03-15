@@ -10,6 +10,7 @@ public class Unit implements Serializable {
 	protected double activationEnergy;
 	protected double activationProbability;
 	protected double state;
+	protected boolean droppedOut;
 
 	public Unit(UnitType unitType) {
 		this.unitType = unitType;
@@ -54,6 +55,14 @@ public class Unit implements Serializable {
 
 	public UnitType getUnitType() {
 		return unitType;
+	}
+	
+	public void setDroppedOut(boolean droppedOut) {
+		this.droppedOut = droppedOut;
+	}
+	
+	public boolean isDroppedOut() {
+		return droppedOut;
 	}
 
 	@Override

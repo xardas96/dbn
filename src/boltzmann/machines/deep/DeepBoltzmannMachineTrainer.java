@@ -26,8 +26,9 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 	private int startLayer;
 	private double momentum;
 	private int k;
+	private double dropOutProbability;
 
-	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double momentum, int k) {
+	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
 		this.dbm = dbm;
 		this.learningFactor = leariningFactor;
 		this.maxEpochs = maxEpochs;
@@ -35,6 +36,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 		this.start = 0;
 		this.momentum = momentum;
 		this.k = k;
+		this.dropOutProbability = dropOutProbability;
 	}
 
 	public void setStart(int start) {
@@ -47,7 +49,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 
 	@Override
 	public void train(List<InputStateVector> trainingVectors) {
-		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, momentum, k);
+		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, momentum, k, dropOutProbability);
 		rbmTrainer.setStart(start);
 		rbmTrainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 

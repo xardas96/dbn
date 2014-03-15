@@ -23,6 +23,7 @@ public class RbmTrainingMain {
 	private static final int TRAINING_EPOCHS = 100;
 	private static final double MOMENTUM = 0.9;
 	private static final int CD_K = 1;
+	private static final double DROP_OUT_PROBABILITY = 0;
 
 	public static void main(String[] args) throws Exception {
 		ObjectIOManager.setSavePath(SAVE_PATH);
@@ -62,7 +63,7 @@ public class RbmTrainingMain {
 			} else {
 				momentum = MOMENTUM;
 			}
-			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, lf, TRAINING_EPOCHS, Double.MIN_VALUE, momentum, CD_K);
+			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, lf, TRAINING_EPOCHS, Double.MIN_VALUE, momentum, CD_K, DROP_OUT_PROBABILITY);
 			trainer.setStartLayer(lastLayer);
 			trainer.setStart(lastEpoch + 1);
 			trainer.train(training);
@@ -71,7 +72,7 @@ public class RbmTrainingMain {
 			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
 			DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
 			dbm.createThreadManager();
-			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new ConstantLearningFactor(LEARINING_FACTOR_FOR_GAUSSIAN), TRAINING_EPOCHS, Double.MIN_VALUE, MOMENTUM, CD_K);
+			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new ConstantLearningFactor(LEARINING_FACTOR_FOR_GAUSSIAN), TRAINING_EPOCHS, Double.MIN_VALUE, MOMENTUM, CD_K, DROP_OUT_PROBABILITY);
 			trainer.train(training);
 		}
 	}

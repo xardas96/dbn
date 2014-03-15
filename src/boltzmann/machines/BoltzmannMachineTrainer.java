@@ -20,8 +20,9 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	private int start;
 	private double momentum;
 	private int k;
+	private double dropOutProbability;
 
-	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k) {
+	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
 		this.bm = bm;
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
@@ -29,6 +30,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		this.trainingStepCompletedListeners = new ArrayList<>();
 		this.momentum = momentum;
 		this.k = k;
+		this.dropOutProbability = dropOutProbability;
 	}
 
 	public void setBm(B bm) {
@@ -51,7 +53,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		return learningFactor;
 	}
 
-	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum);
+	protected abstract void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum, double dropOutProbability);
 
 	protected abstract double calculateErrorDelta(InputStateVector trainingVector);
 
@@ -66,7 +68,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 			for (int j = 0; j < trainigBatchSize; j++) {
 				InputStateVector vector = trainingVectors.get(j);
 				for (int cd = 0; cd < k; cd++) {
-					train(vector, trainigBatchSize, learningFactor.getLearningFactor(), momentum);
+					train(vector, trainigBatchSize, learningFactor.getLearningFactor(), momentum, dropOutProbability);
 					error += calculateErrorDelta(vector);
 					for (TrainingStepCompletedListener trainingStepCompletedListener : trainingStepCompletedListeners) {
 						trainingStepCompletedListener.onTrainingStepComplete(j, trainigBatchSize, cd);

@@ -57,7 +57,14 @@ public class Layer implements Serializable {
 	public void setUnits(Unit[] units) {
 		this.units = units;
 	}
-
+	
+	public void dropOut(double probability) {
+		double rand = Math.random();
+		for(Unit unit : units) {
+			unit.setDroppedOut(probability > rand);
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return "Layer " + units[0].getUnitType().name() + " " + units.length;
