@@ -143,8 +143,8 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 			double[] weightSteps = connector.getWeightStepsForTopUnit(k);
 			for (int l = 0; l < weights.length; l++) {
 				double thisWeightStep = learningFactor.getLearningFactor() * deltas[j][k] * connector.getBottomLayer().getUnit(l).getActivationProbability();
-				weightSteps[l] *= momentum;
-				weightSteps[l] += thisWeightStep;
+				double momentumFactor = momentum * (thisWeightStep - weightSteps[l]);
+				weightSteps[l] += momentumFactor;
 				weights[l] += weightSteps[l];
 			}
 			connector.setWeightsForTopUnit(k, weights);
@@ -219,8 +219,8 @@ public class BackpropagationDeepBeliefNetworkTrainer implements Trainer {
 							double[] weightSteps = connector.getWeightStepsForTopUnit(i);
 							for (int l = 0; l < weights.length; l++) {
 								double thisWeightStep = learningFactor.getLearningFactor() * deltas[j][i] * connector.getBottomLayer().getUnit(l).getActivationProbability();
-								weightSteps[l] *= momentum;
-								weightSteps[l] += thisWeightStep;
+								double momentumFactor = momentum * (thisWeightStep - weightSteps[l]);
+								weightSteps[l] += momentumFactor;
 								weights[l] += weightSteps[l];
 							}
 							connector.setWeightsForTopUnit(i, weights);
