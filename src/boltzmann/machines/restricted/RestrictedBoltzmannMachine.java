@@ -234,9 +234,10 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		for (int i = 0; i < weights.length; i++) {
 			for (int j = 0; j < weights[i].length; j++) {
 				double thisWeightStep = learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
-				weightSteps[i][j] *= momentum;
-				weightSteps[i][j] += thisWeightStep;
-				weights[i][j] += weightSteps[i][j];
+				double momentumFactor = momentum * (thisWeightStep - weightSteps[i][j]);
+				double deltaWeights = thisWeightStep + momentumFactor;
+				weights[i][j] += deltaWeights;
+				weightSteps[i][j] = deltaWeights;
 			}
 		}
 	}
@@ -411,9 +412,10 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 						for (int i = interval.getStart(); i < interval.getStop(); i++) {
 							for (int j = 0; j < weights[i].length; j++) {
 								double thisWeightStep = learningFactor * (positiveGradient[i][j] - negativeGradient[i][j]);
-								weightSteps[i][j] *= momentum;
-								weightSteps[i][j] += thisWeightStep;
-								weights[i][j] += weightSteps[i][j];
+								double momentumFactor = momentum * (thisWeightStep - weightSteps[i][j]);
+								double deltaWeights = thisWeightStep + momentumFactor;
+								weights[i][j] += deltaWeights;
+								weightSteps[i][j] = deltaWeights;
 							}
 						}
 						return null;
