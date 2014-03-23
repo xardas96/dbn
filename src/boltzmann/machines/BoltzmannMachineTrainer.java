@@ -18,17 +18,20 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	private double error;
 	private double previousError;
 	private int start;
+	private double initialMomentum;
+	private double finalMomentum;
 	private double momentum;
 	private int k;
 	private double dropOutProbability;
 
-	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
+	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double initialMomentum, double finalMomentum, int k, double dropOutProbability) {
 		this.bm = bm;
 		this.learningFactor = learningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 		this.trainingStepCompletedListeners = new ArrayList<>();
-		this.momentum = momentum;
+		this.initialMomentum = initialMomentum;
+		this.finalMomentum = finalMomentum;
 		this.k = k;
 		this.dropOutProbability = dropOutProbability;
 	}
@@ -63,6 +66,11 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		previousError = 0;
 		int trainigBatchSize = trainingVectors.size();
 		for (int i = start; i < maxEpochs && error > maxError; i++) {
+			if (i > 5) {
+				momentum = finalMomentum;
+			} else {
+				momentum = initialMomentum;
+			}
 			Collections.shuffle(trainingVectors);
 			error = 0;
 			for (int j = 0; j < trainigBatchSize; j++) {

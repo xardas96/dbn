@@ -24,17 +24,20 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 	private String layers;
 	private int start;
 	private int startLayer;
-	private double momentum;
+	private double initialMomentum;
+	private double finalMomentum;
+
 	private int k;
 	private double dropOutProbability;
 
-	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
+	public DeepBoltzmannMachineTrainer(DeepBoltzmannMachine dbm, AdaptiveLearningFactor leariningFactor, int maxEpochs, double maxError, double initialMomentum, double finalMomentum, int k, double dropOutProbability) {
 		this.dbm = dbm;
 		this.learningFactor = leariningFactor;
 		this.maxEpochs = maxEpochs;
 		this.maxError = maxError;
 		this.start = 0;
-		this.momentum = momentum;
+		this.initialMomentum = initialMomentum;
+		this.finalMomentum = finalMomentum;
 		this.k = k;
 		this.dropOutProbability = dropOutProbability;
 	}
@@ -49,13 +52,13 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 
 	@Override
 	public void train(List<InputStateVector> trainingVectors) {
-		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, momentum, k, dropOutProbability);
+		rbmTrainer = new RestrictedBoltzmannMachineTrainer(learningFactor, maxEpochs, maxError, initialMomentum, finalMomentum, k, dropOutProbability);
 		rbmTrainer.setStart(start);
 		rbmTrainer.addTrainingStepCompletedListener(new TrainingStepCompletedListener() {
 
 			@Override
 			public void onTrainingStepComplete(int step, int trainingBatchSize, int cdK) {
-				if (step % 100 == 0) {
+				if (step % 1000 == 0) {
 					System.out.println("step " + step + "/" + trainingBatchSize + " cd " + cdK);
 				}
 			}
@@ -68,7 +71,7 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 					ObjectIOManager.save(dbm, new File(name + ".net"));
 					ObjectIOManager.save(name, new File("stats.info"));
 					ObjectIOManager.save(learningFactor, new File("learning.factor"));
-					ObjectIOManager.save(momentum, new File("momentum"));
+					ObjectIOManager.save(currentError, new File("errors/error_" + currentEpoch + ".txt"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

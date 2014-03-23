@@ -7,18 +7,18 @@ import boltzmann.vectors.InputStateVector;
 
 public class RestrictedBoltzmannMachineTrainer extends BoltzmannMachineTrainer<RestrictedBoltzmannMachine> {
 
-	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
-		super(bm, learningFactor, maxEpochs, maxError, momentum, k, dropOutProbability);
+	public RestrictedBoltzmannMachineTrainer(RestrictedBoltzmannMachine bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double initialMomentum, double finalMomentum, int k, double dropOutProbability) {
+		super(bm, learningFactor, maxEpochs, maxError, initialMomentum, finalMomentum, k, dropOutProbability);
 	}
 
-	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double momentum, int k, double dropOutProbability) {
-		super(null, learningFactor, maxEpochs, maxError, momentum, k, dropOutProbability);
+	public RestrictedBoltzmannMachineTrainer(AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double initialMomentum, double finalMomentum, int k, double dropOutProbability) {
+		super(null, learningFactor, maxEpochs, maxError, initialMomentum, finalMomentum, k, dropOutProbability);
 	}
 
 	@Override
 	protected void train(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum, double dropOutProbability) {
 		trainAsync(trainingVector, trainingVectorSize, learningFactor, momentum, dropOutProbability);
-//		trainSync(trainingVector, trainingVectorSize, learningFactor, momentum, dropOutProbability);
+		// trainSync(trainingVector, trainingVectorSize, learningFactor, momentum, dropOutProbability);
 	}
 
 	private void trainAsync(InputStateVector trainingVector, int trainingVectorSize, double learningFactor, double momentum, double dropOutProbability) {
