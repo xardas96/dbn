@@ -63,7 +63,7 @@ public class RbmTrainingMain {
 			trainer.train(training);
 		} else {
 			List<InputStateVector> training = ObjectIOManager.load(new File("training.data"));
-			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
+			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
 			DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
 			dbm.createThreadManager();
 			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new ConstantLearningFactor(LEARINING_FACTOR_FOR_GAUSSIAN), TRAINING_EPOCHS, Double.MIN_VALUE, INITIAL_MOMENTUM, FINAL_MOMENTUM, CD_K, DROP_OUT_PROBABILITY);
