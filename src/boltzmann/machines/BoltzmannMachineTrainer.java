@@ -23,6 +23,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 	private double momentum;
 	private int k;
 	private double dropOutProbability;
+	private static final int MOMENTUM_SWITCH_EPOCH = 5;
 
 	public BoltzmannMachineTrainer(B bm, AdaptiveLearningFactor learningFactor, int maxEpochs, double maxError, double initialMomentum, double finalMomentum, int k, double dropOutProbability) {
 		this.bm = bm;
@@ -66,7 +67,7 @@ public abstract class BoltzmannMachineTrainer<B extends BoltzmannMachine> implem
 		previousError = 0;
 		int trainigBatchSize = trainingVectors.size();
 		for (int i = start; i < maxEpochs && error > maxError; i++) {
-			if (i > 5) {
+			if (i > MOMENTUM_SWITCH_EPOCH) {
 				momentum = finalMomentum;
 			} else {
 				momentum = initialMomentum;
