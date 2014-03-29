@@ -71,7 +71,6 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 					ObjectIOManager.save(dbm, new File(name + ".net"));
 					ObjectIOManager.save(name, new File("stats.info"));
 					ObjectIOManager.save(learningFactor, new File("learning.factor"));
-					ObjectIOManager.save(currentError, new File("errors/error_" + currentEpoch + ".txt"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
