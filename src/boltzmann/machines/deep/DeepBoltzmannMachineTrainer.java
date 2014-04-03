@@ -26,7 +26,6 @@ public class DeepBoltzmannMachineTrainer implements Trainer {
 	private int startLayer;
 	private double initialMomentum;
 	private double finalMomentum;
-
 	private int k;
 	private double dropOutProbability;
 

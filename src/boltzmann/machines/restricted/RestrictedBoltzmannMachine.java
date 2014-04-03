@@ -54,6 +54,10 @@ public class RestrictedBoltzmannMachine extends BoltzmannMachine {
 		biases.add(visibleBias);
 		biases.add(hiddenBias);
 	}
+	
+	public List<Layer> getBiases() {
+		return biases;
+	}
 
 	public Layer getBiasForLayer(Layer layer) {
 		return biases.get(layers.indexOf(layer));

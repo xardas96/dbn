@@ -28,7 +28,7 @@ public class RbmTrainingMain {
 	private static final double INITIAL_MOMENTUM = 0.5;
 	private static final double FINAL_MOMENTUM = 0.9;
 	private static final int CD_K = 1;
-	private static final double DROP_OUT_PROBABILITY = 0;
+	private static final double DROP_OUT_PROBABILITY = 0.5;
 
 	public static void main(String[] args) throws Exception {
 		ObjectIOManager.setSavePath(SAVE_PATH);
@@ -61,14 +61,14 @@ public class RbmTrainingMain {
 					lf = new ConstantLearningFactor(LEARINING_FACTOR_FOR_BINARY);
 				}
 			}
-			addExtraLayer(dbm);
+//			addExtraLayer(dbm);
 			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, lf, TRAINING_EPOCHS, Double.MIN_VALUE, INITIAL_MOMENTUM, FINAL_MOMENTUM, CD_K, DROP_OUT_PROBABILITY);
 			trainer.setStartLayer(lastLayer);
 			trainer.setStart(lastEpoch + 1);
 			trainer.train(training);
 		} else {
 			List<InputStateVector> training = ObjectIOManager.load(new File("training.data"));
-			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
+			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
 			DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
 			dbm.createThreadManager();
 			DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new ConstantLearningFactor(LEARINING_FACTOR_FOR_GAUSSIAN), TRAINING_EPOCHS, Double.MIN_VALUE, INITIAL_MOMENTUM, FINAL_MOMENTUM, CD_K, DROP_OUT_PROBABILITY);
@@ -79,10 +79,11 @@ public class RbmTrainingMain {
 	private static void addExtraLayer(DeepBoltzmannMachine dbm) throws IOException {
 		if (!new File(SAVE_PATH + "\\" + "added.layer").exists()) {
 			Layer extraLayer = new Layer(HIDDEN_UNITS_COUNT, UnitType.HIDDEN);
-			Layer dbnLastLayer = dbm.getLayers().get(dbm.getLayers().size());
-			LayerConnector connector = new LayerConnector(dbnLastLayer, dbnLastLayer, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer());
+			Layer dbnLastLayer = dbm.getLayers().get(dbm.getLayers().size() - 1);
+			LayerConnector connector = new LayerConnector(dbnLastLayer, extraLayer, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer());
 			dbm.getLayers().add(extraLayer);
 			dbm.getConnections().add(connector);
+			dbm.getBiases().add(new Layer(HIDDEN_UNITS_COUNT, UnitType.BIAS));
 			ObjectIOManager.save("x", new File("added.layer"));
 		}
 	}
