@@ -24,11 +24,11 @@ public class RbmTrainingMain {
 	private static final double LEARINING_FACTOR_FOR_GAUSSIAN = 0.00001;
 	private static final double LEARINING_FACTOR_FOR_BINARY = 0.001;
 	private static final int HIDDEN_UNITS_COUNT = 1024;
-	private static final int TRAINING_EPOCHS = 100;
+	private static final int TRAINING_EPOCHS = 200;
 	private static final double INITIAL_MOMENTUM = 0.5;
 	private static final double FINAL_MOMENTUM = 0.9;
 	private static final int CD_K = 1;
-	private static final double DROP_OUT_PROBABILITY = 0.5;
+	private static final double DROP_OUT_PROBABILITY = 0;
 
 	public static void main(String[] args) throws Exception {
 		ObjectIOManager.setSavePath(SAVE_PATH);

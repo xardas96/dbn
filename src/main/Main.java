@@ -5,10 +5,8 @@ import io.ObjectIOManager;
 import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,15 +21,11 @@ import java.util.concurrent.Future;
 import javax.swing.JFrame;
 
 import testsets.mfcc.MfccFileParser;
-import testsets.mfcc.MfccParams;
-import testsets.mfcc.MfccSample;
-import testsets.mfcc.PhoneTiming;
 import testsets.mnist.MNISTDigitElement;
 import testsets.mnist.MNISTReader;
 import testsets.mnist.MnistPanel;
 import utils.ConfusionMatrix;
 import utils.GaussianDistributionDataNormalizer;
-import utils.TrainingSetGenerator;
 import boltzmann.layers.Layer;
 import boltzmann.layers.LayerConnectorWeightInitializerFactory;
 import boltzmann.machines.deep.DeepBoltzmannMachine;
@@ -49,155 +43,210 @@ import dbn.DeepBeliefNetwork;
 
 public class Main {
 	private static final String PATH = "E:\\Dropbox\\mgr-asr";
-	private static final String SAVE_PATH = "E:\\Dropbox\\mfcc_experiments";
+	private static final String SAVE_PATH = "E:\\Dropbox\\mfcc_new";
 
 	public static void main(String[] args) throws Exception {
 		ObjectIOManager.setSavePath(SAVE_PATH);
 		ObjectIOManager.setLoadPath(SAVE_PATH);
-		args = new String[] { "gauss" };
-		if (args.length > 0) {
-			switch (args[0]) {
-			case "rbm":
-				testRestrictedBoltzmannMachine();
-				return;
-			case "dbm":
-				testDeepBoltzmannMachine();
-				return;
-			case "dbn":
-				testDeepBeliefNetwork();
-				return;
-			case "gauss":
-				testGaussian();
-				return;
-			case "test":
-				// MfccFileParser p = new MfccFileParser(PATH);
-				// allPhones = p.getPhones(new File(PATH + "\\phones"), true);
-				// List<InputStateVector> training = ObjectIOManager.load(new
-				// File("_training"));
-				// testPhoneClassification(training, allPhones);
-				return;
-			case "newtest":
-				List<InputStateVector> trainingSet = ObjectIOManager.load(new File("_training"));
-				// List<InputStateVector> testSet = ObjectIOManager.load(new
-				// File("_training"));
-				List<InputStateVector> tests = new ArrayList<>();
-
-				Set<String> trainingPhones = new HashSet<>();
-				for (InputStateVector vector : trainingSet) {
-					trainingPhones.add(vector.getLabel());
-				}
-
-				System.out.println(trainingPhones + " " + trainingPhones.size());
-
-				for (String phone : trainingPhones) {
-					int i = 0;
-					int j = 0;
-					while (i < trainingSet.size()) {
-						InputStateVector vec = trainingSet.get(i);
-						if (vec.getLabel().equals(phone)) {
-							tests.add(vec);
-							j++;
-						}
-						if (j == 50) {
-							break;
-						}
-						i++;
-					}
-				}
-				testPhoneClassification(tests, new ArrayList<String>(trainingPhones));
-				return;
-			}
-		} else {
-			// testRestrictedBoltzmannMachine();
-			// testDeepBoltzmannMachine();
-			// testDeepBeliefNetwork();
-			// testClassification();
-			// testGaussian();
-			File file = new File(SAVE_PATH + "\\stats.info");
-			if (file.exists()) {
-				final String stats = ObjectIOManager.load(file);
-				File path = new File(SAVE_PATH);
-				File[] list = path.listFiles(new FileFilter() {
-
-					@Override
-					public boolean accept(File file) {
-						return file.getName().contains(stats);
-					}
-				});
-				List<InputStateVector> training = ObjectIOManager.load(new File("_training"));
-
-				/**
-				 * DeepBoltzmannMachine dbm = ObjectIOManager.load(list[0]);
-				 * dbm.createThreadManager(); File learningF = new
-				 * File(SAVE_PATH + "\\learning.factor"); AdaptiveLearningFactor
-				 * lf; if (learningF.exists()) { lf = ObjectIOManager.load(new
-				 * File("learning.factor")); } else { lf = new
-				 * AdaptiveLearningFactor(0.0001, 0.8, 1.5); }
-				 */
-				// DeepBoltzmannMachineTrainer trainer = new
-				// DeepBoltzmannMachineTrainer(dbm, lf, 100, Double.MIN_VALUE);
-				// String[] split = stats.split("_");
-				// int lastLayer = Integer.valueOf(split[0]);
-				// int lastEpoch = Integer.valueOf(split[2]);
-				// trainer.setStartLayer(lastLayer);
-				// trainer.setStart(lastEpoch + 1);
-				// trainer.train(training);
-
-				MfccFileParser p = new MfccFileParser(PATH);
-				List<String> phones = p.getPhones(new File(PATH + "\\phones"), true);
-
-				final DeepBeliefNetwork dbn = ObjectIOManager.load(list[0]);
-				String[] split = stats.split("_");
-				System.out.println(Arrays.toString(split));
-				int start = Integer.valueOf(split[1]);
-				// final DeepBeliefNetwork dbn =
-				// BoltzmannMachineFactory.getDeepBeliefNetwork(dbm,
-				// LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(),
-				// phones.size());
-				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.02, 1, 1), 25, 0.9);
-				backPropTrainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
-
-					@Override
-					public void onTrainingBatchComplete(int currentEpoch, double currentError, double currentLearningFactor) {
-						System.out.println("Epoch: " + currentEpoch + ", error: " + currentError + ", learning factor: " + currentLearningFactor);
-					}
-				});
-				backPropTrainer.setStart(start + 1);
-				backPropTrainer.train(training);
-
-				// TODO
-				// testPhoneClassification(training, phones);
-
-			} else {
-				MfccFileParser p = new MfccFileParser(PATH);
-				p.setRemoveSilence(true);
-				List<MfccSample> samples = p.loadSamples();
-				List<InputStateVector> data = new ArrayList<>();
-				for (MfccSample sample : samples) {
-					for (PhoneTiming timing : sample.getVectors()) {
-						data.add(timing.getMfccs());
-					}
-				}
-				TrainingSetGenerator generator = new TrainingSetGenerator(1000);
-				generator.splitData(data);
-				List<InputStateVector> training = generator.getTrainingSet();
-				List<InputStateVector> testing = generator.getTestingSet();
-
-				GaussianDistributionDataNormalizer normalizer = new GaussianDistributionDataNormalizer();
-				normalizer.normalizeTrainingSet(training);
-				System.out.println(normalizer.getMean() + " " + normalizer.getStdev());
-
-				ObjectIOManager.save(normalizer, new File("_normalizer"));
-				ObjectIOManager.save(training, new File("_training"));
-				ObjectIOManager.save(testing, new File("_testing"));
-
-				Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, 3072, 3072, 3072, 3072, 3072 };
-				DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
-				dbm.createThreadManager();
-				DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.001, 0.8, 1.5), 100, Double.MIN_VALUE, 0,5, 1, 0);
-				trainer.train(training);
-			}
+		System.out.println("loading...");
+		List<InputStateVector> training = ObjectIOManager.load(new File("training.data"));
+		System.out.println("done loading");
+		List<InputStateVector> testing = ObjectIOManager.load(new File("testing.data"));
+		System.out.println("done loading 2");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("train.arff")));
+		bw.write("@RELATION mfccs");
+		bw.newLine();
+		bw.newLine();
+		int size = training.get(0).getInputStates().length;
+		for(int i = 0; i<size; i++) {
+			bw.write("@ATTRIBUTE " + i + " REAL");
+			bw.newLine();
 		}
+		Set<String> classes = new HashSet<>();
+		for(InputStateVector vector : training) {
+			classes.add(vector.getLabel());
+		}
+		StringBuilder sb = new StringBuilder();
+		for(String cla : classes) {
+			sb.append(cla).append(",");
+		}
+		sb.setLength(sb.length()-1);
+		
+		bw.write("@ATTRIBUTE class {"+sb.toString()+"}");
+		bw.newLine();
+		bw.newLine();
+		bw.write("@DATA");
+		bw.newLine();
+		
+		for(InputStateVector vector : training) {
+			for(Double state : vector.getInputStates()) {
+				bw.write(state + ",");
+			}
+			bw.write(vector.getLabel());
+			bw.newLine();
+			System.out.println(training.indexOf(vector));
+		}
+		bw.flush();
+		bw.close();
+		
+//		BufferedWriter bw2 = new BufferedWriter(new FileWriter(new File("test.txt")));
+//		for(InputStateVector vector : testing) {
+//			for(Double state : vector.getInputStates()) {
+//				bw2.write(state + ",");
+//			}
+//			bw2.write(vector.getLabel());
+//			bw2.newLine();
+//			System.out.println(testing.indexOf(vector));
+//		}
+//		bw2.flush();
+//		bw2.close();
+		
+		
+		
+//		args = new String[] { "gauss" };
+//		if (args.length > 0) {
+//			switch (args[0]) {
+//			case "rbm":
+//				testRestrictedBoltzmannMachine();
+//				return;
+//			case "dbm":
+//				testDeepBoltzmannMachine();
+//				return;
+//			case "dbn":
+//				testDeepBeliefNetwork();
+//				return;
+//			case "gauss":
+//				testGaussian();
+//				return;
+//			case "test":
+//				// MfccFileParser p = new MfccFileParser(PATH);
+//				// allPhones = p.getPhones(new File(PATH + "\\phones"), true);
+//				// List<InputStateVector> training = ObjectIOManager.load(new
+//				// File("_training"));
+//				// testPhoneClassification(training, allPhones);
+//				return;
+//			case "newtest":
+//				List<InputStateVector> trainingSet = ObjectIOManager.load(new File("_training"));
+//				// List<InputStateVector> testSet = ObjectIOManager.load(new
+//				// File("_training"));
+//				List<InputStateVector> tests = new ArrayList<>();
+//
+//				Set<String> trainingPhones = new HashSet<>();
+//				for (InputStateVector vector : trainingSet) {
+//					trainingPhones.add(vector.getLabel());
+//				}
+//
+//				System.out.println(trainingPhones + " " + trainingPhones.size());
+//
+//				for (String phone : trainingPhones) {
+//					int i = 0;
+//					int j = 0;
+//					while (i < trainingSet.size()) {
+//						InputStateVector vec = trainingSet.get(i);
+//						if (vec.getLabel().equals(phone)) {
+//							tests.add(vec);
+//							j++;
+//						}
+//						if (j == 50) {
+//							break;
+//						}
+//						i++;
+//					}
+//				}
+//				testPhoneClassification(tests, new ArrayList<String>(trainingPhones));
+//				return;
+//			}
+//		} else {
+//			// testRestrictedBoltzmannMachine();
+//			// testDeepBoltzmannMachine();
+//			// testDeepBeliefNetwork();
+//			// testClassification();
+//			// testGaussian();
+//			File file = new File(SAVE_PATH + "\\stats.info");
+//			if (file.exists()) {
+//				final String stats = ObjectIOManager.load(file);
+//				File path = new File(SAVE_PATH);
+//				File[] list = path.listFiles(new FileFilter() {
+//
+//					@Override
+//					public boolean accept(File file) {
+//						return file.getName().contains(stats);
+//					}
+//				});
+//				List<InputStateVector> training = ObjectIOManager.load(new File("_training"));
+//
+//				/**
+//				 * DeepBoltzmannMachine dbm = ObjectIOManager.load(list[0]);
+//				 * dbm.createThreadManager(); File learningF = new
+//				 * File(SAVE_PATH + "\\learning.factor"); AdaptiveLearningFactor
+//				 * lf; if (learningF.exists()) { lf = ObjectIOManager.load(new
+//				 * File("learning.factor")); } else { lf = new
+//				 * AdaptiveLearningFactor(0.0001, 0.8, 1.5); }
+//				 */
+//				// DeepBoltzmannMachineTrainer trainer = new
+//				// DeepBoltzmannMachineTrainer(dbm, lf, 100, Double.MIN_VALUE);
+//				// String[] split = stats.split("_");
+//				// int lastLayer = Integer.valueOf(split[0]);
+//				// int lastEpoch = Integer.valueOf(split[2]);
+//				// trainer.setStartLayer(lastLayer);
+//				// trainer.setStart(lastEpoch + 1);
+//				// trainer.train(training);
+//
+//				MfccFileParser p = new MfccFileParser(PATH);
+//				List<String> phones = p.getPhones(new File(PATH + "\\phones"), true);
+//
+//				final DeepBeliefNetwork dbn = ObjectIOManager.load(list[0]);
+//				String[] split = stats.split("_");
+//				System.out.println(Arrays.toString(split));
+//				int start = Integer.valueOf(split[1]);
+//				// final DeepBeliefNetwork dbn =
+//				// BoltzmannMachineFactory.getDeepBeliefNetwork(dbm,
+//				// LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(),
+//				// phones.size());
+//				BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, new AdaptiveLearningFactor(0.02, 1, 1), 25, 0.9);
+//				backPropTrainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
+//
+//					@Override
+//					public void onTrainingBatchComplete(int currentEpoch, double currentError, double currentLearningFactor) {
+//						System.out.println("Epoch: " + currentEpoch + ", error: " + currentError + ", learning factor: " + currentLearningFactor);
+//					}
+//				});
+//				backPropTrainer.setStart(start + 1);
+//				backPropTrainer.train(training);
+//
+//				// TODO
+//				// testPhoneClassification(training, phones);
+//
+//			} else {
+//				MfccFileParser p = new MfccFileParser(PATH);
+//				p.setRemoveSilence(true);
+//				List<MfccSample> samples = p.loadSamples();
+//				List<InputStateVector> data = new ArrayList<>();
+//				for (MfccSample sample : samples) {
+//					for (PhoneTiming timing : sample.getVectors()) {
+//						data.add(timing.getMfccs());
+//					}
+//				}
+//				TrainingSetGenerator generator = new TrainingSetGenerator(1000);
+//				generator.splitData(data);
+//				List<InputStateVector> training = generator.getTrainingSet();
+//				List<InputStateVector> testing = generator.getTestingSet();
+//
+//				GaussianDistributionDataNormalizer normalizer = new GaussianDistributionDataNormalizer();
+//				normalizer.normalizeTrainingSet(training);
+//				System.out.println(normalizer.getMean() + " " + normalizer.getStdev());
+//
+//				ObjectIOManager.save(normalizer, new File("_normalizer"));
+//				ObjectIOManager.save(training, new File("_training"));
+//				ObjectIOManager.save(testing, new File("_testing"));
+//
+//				Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, 3072, 3072, 3072, 3072, 3072 };
+//				DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(true, LayerConnectorWeightInitializerFactory.getZeroWeightInitializer(), layers);
+//				dbm.createThreadManager();
+//				DeepBoltzmannMachineTrainer trainer = new DeepBoltzmannMachineTrainer(dbm, new AdaptiveLearningFactor(0.001, 0.8, 1.5), 100, Double.MIN_VALUE, 0,5, 1, 0);
+//				trainer.train(training);
+//			}
+//		}
 	}
 
 	private static void testRestrictedBoltzmannMachine() {
