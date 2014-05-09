@@ -21,7 +21,7 @@ public class BackpropMain {
 	private static final String PATH = "E:\\Dropbox\\mgr-asr";
 	private static final String SAVE_PATH = "E:\\Dropbox\\mfcc_new";
 	private static final int HIDDEN_UNITS_COUNT = 1024;
-	private static final int NUMBER_OF_EPOCHS = 100;
+	private static final int NUMBER_OF_EPOCHS = 25;
 	private static final double MOMENTUM = 0.9;
 	private static final AdaptiveLearningFactor LEARNING_FACTOR = new AdaptiveLearningFactor(0.02, 1, 1);
 
@@ -71,11 +71,12 @@ public class BackpropMain {
 				backPropTrainer.train(training);
 			}
 		} else {
+			System.out.println("else");
 			MfccFileParser p = new MfccFileParser(PATH);
 			List<String> phones = p.getPhones(new File(PATH + "\\phones"), true);
 			Integer[] layers = new Integer[] { MfccParams.VECTOR_SIZE, HIDDEN_UNITS_COUNT, HIDDEN_UNITS_COUNT };
-			DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(false, LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), layers);
-			final DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getGaussianWeightInitializer(), phones.size());
+			DeepBoltzmannMachine dbm = BoltzmannMachineFactory.getDeepBotlzmannMachine(false, LayerConnectorWeightInitializerFactory.getHalfAndHalfWeightInitializer(), layers);
+			final DeepBeliefNetwork dbn = BoltzmannMachineFactory.getDeepBeliefNetwork(dbm, LayerConnectorWeightInitializerFactory.getHalfAndHalfWeightInitializer(), phones.size());
 			BackpropagationDeepBeliefNetworkTrainer backPropTrainer = new BackpropagationDeepBeliefNetworkTrainer(dbn, LEARNING_FACTOR, NUMBER_OF_EPOCHS, MOMENTUM);
 			backPropTrainer.addTrainingBatchCompletedListener(new TrainingBatchCompletedListener() {
 

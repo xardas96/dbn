@@ -24,4 +24,17 @@ public abstract class LayerConnectorWeightInitializerFactory {
 			}
 		};
 	}
+
+	public static LayerConnectorWeightInitializer getHalfAndHalfWeightInitializer() {
+		return new LayerConnectorWeightInitializer() {
+			private double rangeMin = -0.5;
+			private double rangeMax = 0.5;
+			private Random random = new Random();
+
+			@Override
+			public double getWeight() {
+				return rangeMin + (rangeMax - rangeMin) * random.nextDouble();
+			}
+		};
+	}
 }
